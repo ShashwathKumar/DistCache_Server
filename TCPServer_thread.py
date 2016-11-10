@@ -6,8 +6,6 @@ import re
 import threading 
 import json
 
-
-
 class ThreadedServer(object):
 	def __init__(self, host, port):
 		self.serverPort = port
@@ -22,7 +20,7 @@ class ThreadedServer(object):
 		self.extDict  = {}
 
 	def listen(self):
-	 	self.serverSocket.listen(15)
+	 	self.serverSocket.listen(5)
 		while True:
 			connectionSocket, addr = self.serverSocket.accept()
 			connectionSocket.settimeout(60)
@@ -73,7 +71,8 @@ class ThreadedServer(object):
 				#print html
 				connectionSocket.send(html)
 				html = f.read(self.size)
-			json.dump(self.extDict, self.jsonFile)
+			self.jsonFile.seek(0)
+			json.dump(self.extDict, self.jsonFile, indent=8)
 			self.jsonFile.close()
 			f.close()
 			#connectionSocket.shutdown(socket.SHUT_RDWR)
