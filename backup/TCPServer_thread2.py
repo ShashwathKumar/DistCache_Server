@@ -20,21 +20,26 @@ class ThreadedServer(object):
 		self.extDict  = {}
 
 	def listen(self):
-	 	self.serverSocket.listen(5)
-		with open(self.jsonPath, 'r+') as self.jsonFile:
+		try:
+	 		self.serverSocket.listen(5)
+			self.jsonFile = open(self.jsonPath, 'r+')
 			self.extDict = json.load(self.jsonFile)
-		jsonCnt=0
-		while True:
-			connectionSocket, addr = self.serverSocket.accept()
-			connectionSocket.settimeout(60)
-			threading.Thread(target = self.listenToClient,args = (connectionSocket,addr)).start()
-			if jsonCnt==25:
-				os.remove(self.jsonPath)	
-				with open(self.jsonPath, 'w') as self.jsonFile:
+			jsonCnt=0
+			while True:
+				connectionSocket, addr = self.serverSocket.accept()
+				connectionSocket.settimeout(60)
+				threading.Thread(target = self.listenToClient,args = (connectionSocket,addr)).start()
+				if jsonCnt==25:
+					self.jsonFile.seek(0)
 					json.dump(self.extDict, self.jsonFile, indent=8)
-				jsonCnt=0
-			jsonCnt+=1
-
+					jsonCnt=0
+				jsonCnt+=1
+		except KeyboardInterrupt:
+			if not jsonFile.closed:
+				self.jsonFile.close()
+		finally:
+			if not jsonFile.closed:
+				self.jsonFile.close()
 
 	def listenToClient(self, connectionSocket, addr):
 		try:
@@ -87,8 +92,8 @@ class ThreadedServer(object):
 					#print html
 					connectionSocket.send(html)
 					html = f.read(self.size)
-				with open(self.jsonPath, 'r+') as self.jsonFile:
-					json.dump(self.extDict, self.jsonFile, indent=8)
+				self.jsonFile.seek(0)
+				json.dump(self.extDict, self.jsonFile, indent=8)
 				#self.jsonFile.close()
 				f.close()
 				#connectionSocket.shutdown(socket.SHUT_RDWR)
