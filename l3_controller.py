@@ -375,19 +375,19 @@ class l3_switch (EventMixin):
       #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
 
       r = arp()
-      r.hwtype = a.hwtype
-      r.prototype = a.prototype
-      r.hwlen = a.hwlen
+      r.hwtype = r.HW_TYPE_ETHERNET
+      r.prototype = r.PROTO_TYPE_IP
+      r.hwlen = 6
       r.protolen = a.protolen
       r.opcode = a.opcode
       r.hwdst = ETHER_BROADCAST
-      r.protodst = a.protodst
+      r.protodst = dstaddr
       r.hwsrc = a.hwsrc
       r.protosrc = a.protosrc
       e = ethernet(type=ethernet.ARP_TYPE, src=a.protosrc,
                    dst=ETHER_BROADCAST)
       e.set_payload(r)
-      log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+      #log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
       msg = of.ofp_packet_out()
       msg.data = e.pack()
       msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
