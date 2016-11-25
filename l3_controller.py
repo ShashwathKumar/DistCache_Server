@@ -379,7 +379,7 @@ class l3_switch (EventMixin):
       r.prototype = a.prototype
       r.hwlen = a.hwlen
       r.protolen = a.protolen
-      r.opcode = arp.REQUEST
+      r.opcode = a.opcode
       r.hwdst = ETHER_BROADCAST
       r.protodst = dstaddr
       r.hwsrc = a.hwsrc
