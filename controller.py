@@ -201,7 +201,9 @@ class l3_switch (EventMixin):
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
           dstCacheDict[dstaddr] = cache[cacheCnt]
+          log.info("    assigning cache for a new dstaddr: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
           cacheCnt=1-cacheCnt
+        log.info("changing destination IP to cache ip: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
         dstaddr = dstCacheDict[dstaddr]
 
       # if dstaddr in dstCacheDict:
