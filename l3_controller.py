@@ -304,10 +304,19 @@ class l3_switch (EventMixin):
 
     elif isinstance(packet.next, arp):
       a = packet.next
-
       log.debug("%i %i ARP %s %s => %s", dpid, inport,
        {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
        'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
+
+      dstaddr = a.protodst
+      #HackAlert
+      if dstaddr not in nwHosts:
+        if dstaddr not in dstCacheDict:
+          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
+          log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
+          cacheCnt=1-cacheCnt
+        dstaddr = IPAddr(dstCacheDict[dstaddr])
+        log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
       if a.prototype == arp.PROTO_TYPE_IP:
         if a.hwtype == arp.HW_TYPE_ETHERNET:
@@ -332,15 +341,6 @@ class l3_switch (EventMixin):
 
             if a.opcode == arp.REQUEST:
               # Maybe we can answer
-              dstaddr = a.protodst
-              #HackAlert
-              if dstaddr not in nwHosts:
-                if dstaddr not in dstCacheDict:
-                  dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-                  log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
-                  cacheCnt=1-cacheCnt
-                dstaddr = IPAddr(dstCacheDict[dstaddr])
-                log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
               if dstaddr in self.arpTable[dpid]:
                 # We have an answer...
@@ -372,13 +372,33 @@ class l3_switch (EventMixin):
                   return
 
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
-      log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport,
-       {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
-       'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
+      #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
 
+      r = arp()
+      r.hwtype = a.hwtype
+      r.prototype = a.prototype
+      r.hwlen = a.hwlen
+      r.protolen = a.protolen
+      r.opcode = arp.REQUEST
+      r.hwdst = ETHER_BROADCAST
+      r.protodst = dstaddr
+      r.hwsrc = a.hwsrc
+      r.protosrc = a.protosrc
+      e = ethernet(type=ethernet.ARP_TYPE, src=a.protosrc,
+                   dst=ETHER_BROADCAST)
+      e.set_payload(r)
+      log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+      msg = of.ofp_packet_out()
+      msg.data = e.pack()
+      msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+      msg.in_port = inport
+      event.connection.send(msg)
+
+      '''
       msg = of.ofp_packet_out(in_port = inport, data = event.ofp,
           action = of.ofp_action_output(port = of.OFPP_FLOOD))
       event.connection.send(msg)
+      '''
 
 
 def launch (fakeways="", arp_for_unknowns=None, wide=False):
