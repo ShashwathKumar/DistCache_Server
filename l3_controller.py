@@ -381,7 +381,7 @@ class l3_switch (EventMixin):
       r.protolen = a.protolen
       r.opcode = a.opcode
       r.hwdst = ETHER_BROADCAST
-      r.protodst = str(dstaddr)
+      r.protodst = a.protodst
       r.hwsrc = a.hwsrc
       r.protosrc = a.protosrc
       e = ethernet(type=ethernet.ARP_TYPE, src=a.protosrc,
