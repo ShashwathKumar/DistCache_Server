@@ -308,7 +308,7 @@ class l3_switch (EventMixin):
        {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
        'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
 
-      dstaddr = a.protodst
+      dstaddr = a.protodst# dest IP
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
@@ -357,7 +357,7 @@ class l3_switch (EventMixin):
                   r.hwdst = a.hwsrc
                   r.protodst = a.protosrc
                   r.protosrc = dstaddr
-                  r.hwsrc = self.arpTable[dpid][dstaddr].mac
+                  r.hwsrc = self.arpTable[dpid][dstaddr].mac # mac of guy who is supposed to reply
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
@@ -387,7 +387,7 @@ class l3_switch (EventMixin):
       e = ethernet(type=packet.type, src=packet.src,
                    dst=ETHER_BROADCAST)
       e.set_payload(r)
-      #log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+      log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
       msg = of.ofp_packet_out()
       msg.data = e.pack()
       msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
