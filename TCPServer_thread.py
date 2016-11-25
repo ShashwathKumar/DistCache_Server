@@ -28,7 +28,7 @@ class ThreadedServer(object):
 			connectionSocket, addr = self.serverSocket.accept()
 			connectionSocket.settimeout(60)
 			threading.Thread(target = self.listenToClient,args = (connectionSocket,addr)).start()
-			if jsonCnt==25:
+			if jsonCnt==5:
 				os.remove(self.jsonPath)	
 				with open(self.jsonPath, 'w') as self.jsonFile:
 					json.dump(self.extDict, self.jsonFile, indent=8)
@@ -87,18 +87,22 @@ class ThreadedServer(object):
 					#print html
 					connectionSocket.send(html)
 					html = f.read(self.size)
-				with open(self.jsonPath, 'r+') as self.jsonFile:
-					json.dump(self.extDict, self.jsonFile, indent=8)
+				# with open(self.jsonPath, 'r+') as self.jsonFile:
+				# 	json.dump(self.extDict, self.jsonFile, indent=8)
 				#self.jsonFile.close()
 				f.close()
 				#connectionSocket.shutdown(socket.SHUT_RDWR)
 				connectionSocket.close()
 		except KeyboardInterrupt:
+			with open(self.jsonPath, 'r+') as self.jsonFile:
+					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
 		finally:
+			with open(self.jsonPath, 'r+') as self.jsonFile:
+					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
 
 if __name__ == "__main__":
 	#port_num = input("Port? ")
-	port_num = 11000
+	port_num = 80
 	ThreadedServer('',port_num).listen()
