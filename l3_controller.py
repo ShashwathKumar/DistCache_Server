@@ -59,8 +59,11 @@ cache = ['192.168.1.4', '192.168.1.5']
 cacheCnt = 0
 dstCacheDict = {}
 nwHosts = set()
+
 for i in xrange(1,16):
   nwHosts.add('192.168.1.'+str(i))
+nwHosts.add('0.0.0.0')
+nwHosts.add('255.255.255.255')
 
 class Entry (object):
   """
@@ -203,11 +206,15 @@ class l3_switch (EventMixin):
       # Try to forward
       dstaddr = packet.next.dstip
 
+      for p in nwHosts: log.info("Hosts - %s",p) # print hosts
+
+      for p in dstCacheDict: log.info("Cache entries - %s",p) # print map keys
+
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
           dstCacheDict[dstaddr] = cache[cacheCnt]
-          log.info("    assigning cache for a new dstaddr: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
+          log.info("assigning cache for a new dstaddr: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
           cacheCnt=1-cacheCnt
         log.info("changing destination IP to cache ip: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
         dstaddr = dstCacheDict[dstaddr]
@@ -297,6 +304,7 @@ class l3_switch (EventMixin):
 
     elif isinstance(packet.next, arp):
       a = packet.next
+
       log.debug("%i %i ARP %s %s => %s", dpid, inport,
        {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode,
        'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
@@ -324,11 +332,20 @@ class l3_switch (EventMixin):
 
             if a.opcode == arp.REQUEST:
               # Maybe we can answer
+              dstaddr = a.protodst
+              #HackAlert
+              if dstaddr not in nwHosts:
+                if dstaddr not in dstCacheDict:
+                  dstCacheDict[dstaddr] = cache[cacheCnt]
+                  log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
+                  cacheCnt=1-cacheCnt
+                log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
+                dstaddr = dstCacheDict[dstaddr]
 
-              if a.protodst in self.arpTable[dpid]:
+              if dstaddr in self.arpTable[dpid]:
                 # We have an answer...
 
-                if not self.arpTable[dpid][a.protodst].isExpired():
+                if not self.arpTable[dpid][dstaddr].isExpired():
                   # .. and it's relatively current, so we'll reply ourselves
 
                   r = arp()
@@ -339,8 +356,8 @@ class l3_switch (EventMixin):
                   r.opcode = arp.REPLY
                   r.hwdst = a.hwsrc
                   r.protodst = a.protosrc
-                  r.protosrc = a.protodst
-                  r.hwsrc = self.arpTable[dpid][a.protodst].mac
+                  r.protosrc = dstaddr
+                  r.hwsrc = self.arpTable[dpid][dstaddr].mac
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
