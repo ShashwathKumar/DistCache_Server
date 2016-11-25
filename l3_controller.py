@@ -61,9 +61,9 @@ dstCacheDict = {}
 nwHosts = set()
 
 for i in xrange(1,16):
-  nwHosts.add('192.168.1.'+str(i))
-nwHosts.add('0.0.0.0')
-nwHosts.add('255.255.255.255')
+  nwHosts.add(IPAddr('192.168.1.'+str(i)))
+nwHosts.add(IPAddr('0.0.0.0'))
+nwHosts.add(IPAddr('255.255.255.255'))
 
 class Entry (object):
   """
@@ -213,11 +213,11 @@ class l3_switch (EventMixin):
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
-          dstCacheDict[dstaddr] = cache[cacheCnt]
+          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
           log.info("assigning cache for a new dstaddr: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
           cacheCnt=1-cacheCnt
         log.info("changing destination IP to cache ip: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
-        dstaddr = dstCacheDict[dstaddr]
+        dstaddr = IPAddr(dstCacheDict[dstaddr])
 
       # if dstaddr in dstCacheDict:
       #   dstaddr = dstCacheDict[dstaddr]
@@ -336,11 +336,11 @@ class l3_switch (EventMixin):
               #HackAlert
               if dstaddr not in nwHosts:
                 if dstaddr not in dstCacheDict:
-                  dstCacheDict[dstaddr] = cache[cacheCnt]
+                  dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
                   log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
                   cacheCnt=1-cacheCnt
                 log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
-                dstaddr = dstCacheDict[dstaddr]
+                dstaddr = IPAddr(dstCacheDict[dstaddr])
 
               if dstaddr in self.arpTable[dpid]:
                 # We have an answer...
