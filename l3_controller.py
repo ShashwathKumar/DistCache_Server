@@ -384,7 +384,7 @@ class l3_switch (EventMixin):
       r.protodst = dstaddr
       r.hwsrc = a.hwsrc
       r.protosrc = a.protosrc
-      e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
+      e = ethernet(type=packet.type, src=packet.src,
                    dst=ETHER_BROADCAST)
       e.set_payload(r)
       #log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
