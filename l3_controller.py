@@ -59,7 +59,7 @@ cache = ['192.168.1.4', '192.168.1.5']
 cacheCnt = 0
 dstCacheDict = {}
 nwHosts = set()
-for i in xrange(101,116):
+for i in xrange(1,16):
   nwHosts.add('192.168.1.'+str(i))
 
 class Entry (object):
