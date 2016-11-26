@@ -243,7 +243,7 @@ class l3_switch (EventMixin):
           actions.append(of.ofp_action_dl_addr.set_dst(mac))
           actions.append(of.ofp_action_output(port = prt))
           #if self.wide:
-          match = of.ofp_match(dl_type = ethernet.IP_TYPE, nw_proto = ipv4.TCP_PROTOCOL, in_port=inport, nw_src=packet.next.srcip, nw_dst = packet.next.dstip) #mention the actual destination IP
+          match = of.ofp_match(dl_type = ethernet.IP_TYPE, in_port=inport, nw_src=packet.next.srcip, nw_dst = packet.next.dstip) #mention the actual destination IP
           #else:
           #  match = of.ofp_match.from_packet(packet, inport)
 
