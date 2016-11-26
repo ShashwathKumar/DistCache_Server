@@ -237,13 +237,13 @@ class l3_switch (EventMixin):
                       "input port" % (dpid, inport, dstaddr))
         else:
           log.debug("%i %i installing flow for %s => %s out port %i"
-                    % (dpid, inport, packet.next.srcip, dstaddr, prt))
+                    % (dpid, inport, packet.next.srcip, packet.next.dstip, prt))
 
           actions = []
           actions.append(of.ofp_action_dl_addr.set_dst(mac))
           actions.append(of.ofp_action_output(port = prt))
           if self.wide:
-            match = of.ofp_match(dl_type = packet.type, nw_dst = dstaddr)
+            match = of.ofp_match(dl_type = packet.type, nw_dst = packet.next.dstip) #mention the actual destination IP
           else:
             match = of.ofp_match.from_packet(packet, inport)
 
