@@ -206,9 +206,16 @@ class l3_switch (EventMixin):
       # Try to forward
       dstaddr = packet.next.dstip
 
+      print nwHosts
+
+      print dstCacheDict
+
+      print dstaddr
+
       #for p in nwHosts: log.info("Hosts - %s",p) # print hosts
 
       #for p in dstCacheDict: log.info("Cache entries - %s",p) # print map keys
+
 
       #HackAlert
       if dstaddr not in nwHosts:
