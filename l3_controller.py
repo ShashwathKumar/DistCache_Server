@@ -356,13 +356,13 @@ class l3_switch (EventMixin):
                   r.opcode = arp.REPLY
                   r.hwdst = a.hwsrc
                   r.protodst = a.protosrc
-                  r.protosrc = dstaddr
+                  r.protosrc = a.protodst #The guy who is supposed to reply
                   r.hwsrc = self.arpTable[dpid][dstaddr].mac # mac of guy who is supposed to reply
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
-                  log.debug("%i %i answering ARP for %s" % (dpid, inport,
-                   r.protosrc))
+                  log.debug("%i %i answering ARP for %s to %s with the mac of the cache %s " % (dpid, inport,
+                   a.protodst,a.protosrc, r.hwsrc))
                   msg = of.ofp_packet_out()
                   msg.data = e.pack()
                   msg.actions.append(of.ofp_action_output(port =
