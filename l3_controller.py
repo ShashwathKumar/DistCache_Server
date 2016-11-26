@@ -361,7 +361,7 @@ class l3_switch (EventMixin):
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
-                  log.debug("%i %i answering ARP for %s to %s with the mac of the cache %s %s" % (dpid, inport,
+                  log.debug("%i %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,
                    a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
                   msg = of.ofp_packet_out()
                   msg.data = e.pack()
@@ -373,32 +373,31 @@ class l3_switch (EventMixin):
 
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
       #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
-
-      r = arp()
-      r.hwtype = a.hwtype
-      r.prototype = a.prototype
-      r.hwlen = a.hwlen
-      r.protolen = a.protolen
-      r.opcode = a.opcode
-      r.hwdst = ETHER_BROADCAST
-      r.protodst = dstaddr
-      r.hwsrc = a.hwsrc
-      r.protosrc = a.protosrc
-      e = ethernet(type=packet.type, src=packet.src,
-                   dst=ETHER_BROADCAST)
-      e.set_payload(r)
-      log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
-      msg = of.ofp_packet_out()
-      msg.data = e.pack()
-      msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
-      msg.in_port = inport
-      event.connection.send(msg)
-
-      '''
-      msg = of.ofp_packet_out(in_port = inport, data = event.ofp,
-          action = of.ofp_action_output(port = of.OFPP_FLOOD))
-      event.connection.send(msg)
-      '''
+      if a.opcode == arp.REQUEST:
+        r = arp()
+        r.hwtype = a.hwtype
+        r.prototype = a.prototype
+        r.hwlen = a.hwlen
+        r.protolen = a.protolen
+        r.opcode = a.opcode
+        r.hwdst = ETHER_BROADCAST
+        r.protodst = dstaddr
+        r.hwsrc = a.hwsrc
+        r.protosrc = a.protosrc
+        e = ethernet(type=packet.type, src=packet.src,
+                     dst=ETHER_BROADCAST)
+        e.set_payload(r)
+        log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+        msg = of.ofp_packet_out()
+        msg.data = e.pack()
+        msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+        msg.in_port = inport
+        event.connection.send(msg)
+      else
+        msg = of.ofp_packet_out(in_port = inport, data = event.ofp,
+            action = of.ofp_action_output(port = of.OFPP_FLOOD))
+        event.connection.send(msg)
+      
 
 
 def launch (fakeways="", arp_for_unknowns=None, wide=False):
