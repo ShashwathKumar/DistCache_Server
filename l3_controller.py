@@ -393,7 +393,7 @@ class l3_switch (EventMixin):
         msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
         msg.in_port = inport
         event.connection.send(msg)
-      else
+      else:
         msg = of.ofp_packet_out(in_port = inport, data = event.ofp,
             action = of.ofp_action_output(port = of.OFPP_FLOOD))
         event.connection.send(msg)
