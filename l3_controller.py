@@ -361,8 +361,8 @@ class l3_switch (EventMixin):
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
-                  log.debug("%i %i answering ARP for %s to %s with the mac of the cache %s " % (dpid, inport,
-                   a.protodst,a.protosrc, r.hwsrc))
+                  log.debug("%i %i answering ARP for %s to %s with the mac of the cache %s %s" % (dpid, inport,
+                   a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
                   msg = of.ofp_packet_out()
                   msg.data = e.pack()
                   msg.actions.append(of.ofp_action_output(port =
