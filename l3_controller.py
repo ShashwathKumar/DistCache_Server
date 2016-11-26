@@ -214,10 +214,10 @@ class l3_switch (EventMixin):
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          log.info("assigning cache for a new dstaddr: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
+          log.info("assigning cache for a new dstaddr: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], packet.next.dstip)
           cacheCnt=1-cacheCnt
-        log.info("changing destination IP to cache ip: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
         dstaddr = IPAddr(dstCacheDict[dstaddr])
+        log.info("changing destination IP to cache ip: cache:%s, dstaddr:%s", dstaddr , packet.next.dstip )
 
       # if dstaddr in dstCacheDict:
       #   dstaddr = dstCacheDict[dstaddr]
@@ -314,7 +314,7 @@ class l3_switch (EventMixin):
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", cache[cacheCnt], dstaddr)
+          log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], a.protodst)
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
