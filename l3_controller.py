@@ -96,7 +96,7 @@ def dpid_to_mac (dpid):
 
 
 class l3_switch (EventMixin):
-  def __init__ (self, fakeways = [], arp_for_unknowns = False, wide = False):
+  def __init__ (self, fakeways = [], arp_for_unknowns = False, wide = True):
     # These are "fake gateways" -- we'll answer ARPs for them with MAC
     # of the switch they're connected to.
     self.fakeways = set(fakeways)
