@@ -207,10 +207,11 @@ class l3_switch (EventMixin):
       dstaddr = packet.next.dstip
 
       print nwHosts
-
+      
       print dstCacheDict
 
       print dstaddr
+      print type(dstaddr)
 
       #for p in nwHosts: log.info("Hosts - %s",p) # print hosts
 
