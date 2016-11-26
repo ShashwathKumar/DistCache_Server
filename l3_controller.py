@@ -249,8 +249,8 @@ class l3_switch (EventMixin):
 
           actions = []
           actions.append(of.ofp_action_dl_addr.set_dst(mac))
-          actions.append(of.ofp_action_output(port = prt))
           actions.append(of.ofp_action_nw_addr.set_dst(dstaddr))
+          actions.append(of.ofp_action_output(port = prt))
           #actions.append(of.ofp_action_tp_port.set_dst(80))
           #if self.wide:
           match = of.ofp_match(dl_type = ethernet.IP_TYPE, in_port=inport, nw_src=packet.next.srcip, nw_dst = packet.next.dstip) #mention the actual destination IP
@@ -264,6 +264,27 @@ class l3_switch (EventMixin):
                                 actions=actions,
                                 match=match)
           event.connection.send(msg.pack())
+
+          ##########################################################################################
+
+          actions = []
+          #actions.append(of.ofp_action_dl_addr.set_dst(mac))
+          actions.append(of.ofp_action_nw_addr.set_src(packet.next.dstip))
+          actions.append(of.ofp_action_output(port = inport))
+          #actions.append(of.ofp_action_tp_port.set_dst(80))
+          #if self.wide:
+          match = of.ofp_match(dl_type = ethernet.IP_TYPE, in_port=prt, nw_src=dstaddr, nw_dst = packet.next.srcip) #mention the actual destination IP
+          #else:
+          #  match = of.ofp_match.from_packet(packet, inport)
+
+          msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
+                                idle_timeout=18000,
+                                hard_timeout=of.OFP_FLOW_PERMANENT,
+                                buffer_id=event.ofp.buffer_id,
+                                actions=actions,
+                                match=match)
+          event.connection.send(msg.pack())
+
       elif self.arp_for_unknowns:
         # We don't know this destination.
         # First, we track this buffer so that we can try to resend it later
