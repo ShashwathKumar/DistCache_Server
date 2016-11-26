@@ -96,7 +96,7 @@ def dpid_to_mac (dpid):
 
 
 class l3_switch (EventMixin):
-  def __init__ (self, fakeways = [], arp_for_unknowns = False, wide = True):
+  def __init__ (self, fakeways = [], arp_for_unknowns = False, wide = False):
     # These are "fake gateways" -- we'll answer ARPs for them with MAC
     # of the switch they're connected to.
     self.fakeways = set(fakeways)
@@ -249,7 +249,7 @@ class l3_switch (EventMixin):
           #  match = of.ofp_match.from_packet(packet, inport)
 
           msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
-                                idle_timeout=FLOW_IDLE_TIMEOUT,
+                                idle_timeout=18000,
                                 hard_timeout=of.OFP_FLOW_PERMANENT,
                                 buffer_id=event.ofp.buffer_id,
                                 actions=actions,
