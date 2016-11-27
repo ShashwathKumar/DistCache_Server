@@ -282,7 +282,7 @@ class l3_switch (EventMixin):
           msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
                                 idle_timeout=18000,
                                 hard_timeout=of.OFP_FLOW_PERMANENT,
-                                buffer_id=of.NO_BUFFER,
+                                buffer_id=event.ofp.buffer_id,
                                 actions=actions,
                                 match=match)
           event.connection.send(msg.pack())
