@@ -57,7 +57,6 @@ class ThreadedServer(object):
 			msg = message.decode()
 			print "*** Msg --------------------------------------------"
 			print msg
-			#print addr
 			first = msg.find('GET')+4
 			httpIndex = msg.find('http')
 			last  = msg.find('HTTP', first+1)-1
@@ -71,14 +70,14 @@ class ThreadedServer(object):
 				host = str(msg[hostIndex1: hostIndex2])
 				host.strip('\r')
 			print hostIndex1, hostIndex2, host
-			url = host+url
+			url = ''.join(host,url)
 			print url, host
+			print type(url)
+			print type(host)
 			if httpIndex==-1:
 				url='http://'+url
 			reqType = ''
-			print "url:------------------------------------"
-			print url
-			print type(url)
+			print "url:", url
 
 			if (not url) or first==-1:
 				#continue
