@@ -68,6 +68,7 @@ class ThreadedServer(object):
 				hostIndex2 = msg.find('\n', hostIndex1)
 				host = msg[hostIndex1: hostIndex2]
 				host.strip('\r')
+			print hostIndex1, hostIndex2, host
 			url = host+url
 			reqType = ''
 			print "url:", url
