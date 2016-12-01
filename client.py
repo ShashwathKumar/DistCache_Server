@@ -11,11 +11,11 @@ IP_PMTUDISC_DO    =  2  # Always DF.
 IP_PMTUDISC_PROBE =  3  # Ignore dst pmtu.
 
 url = sys.argv[1]
-eth = sys.argv[2]
+eth = 'eth1'
 
 client = socket(AF_INET, SOCK_STREAM)
 client.settimeout(5.0)
-client.bind(('', 9000))
+client.bind(('', 12000))
 client.setsockopt(SOL_IP, IP_MTU_DISCOVER, IP_PMTUDISC_DONT)
 client.setsockopt(SOL_SOCKET, 25, eth+'\0')
 client.connect((host,port))
