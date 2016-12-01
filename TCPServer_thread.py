@@ -1,4 +1,5 @@
 from socket import *
+from urlparse import urljoin
 import thread
 import urllib, urllib2
 import os.path
@@ -68,16 +69,18 @@ class ThreadedServer(object):
 				hostIndex1 = msg.find(' ' , hostIndex1)+1
 				hostIndex2 = msg.find('\n', hostIndex1)
 				host = str(msg[hostIndex1: hostIndex2])
-				host.strip('\r')
+				host.strip('\\r')
+				host.strip('\\n')
 			print hostIndex1, hostIndex2, host
-			url = host.join(url)
+			url=urljoin(host,url)
 			print url, host
 			print type(url)
 			print type(host)
 			if httpIndex==-1:
-				url='http://'.join(url)
+				url=urljoin('http://',url)
 			reqType = ''
-			print "url:", url
+			print "url:-------------------------"
+			print url
 
 			if (not url) or first==-1:
 				#continue
