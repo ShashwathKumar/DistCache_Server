@@ -62,7 +62,7 @@ class ThreadedServer(object):
 			last  = msg.find('HTTP', first+1)-1
 			url   = msg[first: last]
 			host  = ''
-			hostIndex1 = msg.find('HOST', last+1)
+			hostIndex1 = msg.find('Host', last+1)
 			if hostIndex1!=-1:
 				hostIndex1 = msg.find(' ' , hostIndex)+1
 				hostIndex2 = msg.find('\n', hostIndex)
@@ -70,8 +70,7 @@ class ThreadedServer(object):
 				host.strip('\r')
 			url = host+url
 			reqType = ''
-			print "-----------------------------"
-			print url
+			print "url:", url
 
 			if not url:
 				#continue
@@ -121,6 +120,7 @@ class ThreadedServer(object):
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
 		finally:
+			print "---------------------------------------------------------"
 			with open(self.jsonPath, 'r+') as self.jsonFile:
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
