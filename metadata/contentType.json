@@ -1,1 +1,14 @@
-{}
+{
+        "http://google.com/": "text/html; charset=ISO-8859-1", 
+        "http://extsgo.com/api/tracker/check?url=http%3A%2F%2Fgoogle.com%2F": "application/json; charset=UTF-8", 
+        "http://google.com/client_204?&atyp=i&biw=1366&bih=638&ei=d5A_WPDWA8uKmQG724KgBw": "text/html; charset=ISO-8859-1", 
+        "http://s3.eu-central-1.amazonaws.com/forton/cbp/cstf.js": "application/x-javascript", 
+        "http://denninginstitute.com/pjd/PUBS/WSModel_1968.pdf": "application/pdf", 
+        "http://google.com/logos/doodles/2016/jagadish-chandra-boses-158th-birthday-5756743989592064.2-hp.png": "image/png", 
+        "http://google.com/xjs/_/js/k=xjs.hp.en_US.Q9axaIts5S8.O/m=sb_he,d/rt=j/d=1/t=zcms/rs=ACT90oHPA9m23E5thYqPZbPr95c1Fz_BZw": "text/javascript; charset=UTF-8", 
+        "http://s3.eu-central-1.amazonaws.com/forton/live_http_headers.js": "application/x-javascript", 
+        "http://s3.eu-central-1.amazonaws.com/forton/cbp/cmps/63_4852e.js": "application/javascript", 
+        "http://xlog.info/": "text/plain; charset=utf-8", 
+        "http://clients1.google.com/generate_204": null, 
+        "http://s3.eu-central-1.amazonaws.com/forton/cbp/tsr.js": "application/x-javascript"
+}

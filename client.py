@@ -20,7 +20,7 @@ client.setsockopt(SOL_IP, IP_MTU_DISCOVER, IP_PMTUDISC_DONT)
 client.setsockopt(SOL_SOCKET, 25, eth+'\0')
 client.connect((host,port))
 
-req = 'GET http://google.com/ HTTP/1.1\n\n'
+req = 'GET '+ url + ' HTTP/1.1\n\n'
 
 client.send(req)
 
