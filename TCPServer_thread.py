@@ -70,12 +70,12 @@ class ThreadedServer(object):
 				host = str(msg[hostIndex1: hostIndex2])
 				host.strip('\r')
 			print hostIndex1, hostIndex2, host
-			url = ''.join(host,url)
+			url = host.join(url)
 			print url, host
 			print type(url)
 			print type(host)
 			if httpIndex==-1:
-				url='http://'+url
+				url='http://'.join(url)
 			reqType = ''
 			print "url:", url
 
