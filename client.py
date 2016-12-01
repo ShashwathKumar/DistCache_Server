@@ -14,7 +14,7 @@ url = sys.argv[1]
 eth = 'eth1'
 
 client = socket(AF_INET, SOCK_STREAM)
-client.settimeout(5.0)
+client.settimeout(15.0)
 client.bind(('', 12000))
 client.setsockopt(SOL_IP, IP_MTU_DISCOVER, IP_PMTUDISC_DONT)
 client.setsockopt(SOL_SOCKET, 25, eth+'\0')
