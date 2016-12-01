@@ -6,11 +6,19 @@ import re
 import threading 
 import json
 
+
+IP_MTU_DISCOVER   = 10
+IP_PMTUDISC_DONT  =  0  # Never send DF frames.
+IP_PMTUDISC_WANT  =  1  # Use per route hints.
+IP_PMTUDISC_DO    =  2  # Always DF.
+IP_PMTUDISC_PROBE =  3  # Ignore dst pmtu.
+
 class ThreadedServer(object):
 	def __init__(self, host, port):
 		self.serverPort = port
 		self.serverHost = host
 		self.serverSocket = socket(AF_INET, SOCK_STREAM)
+		self.serverSocket.setsockopt(SOL_IP, IP_MTU_DISCOVER, IP_PMTUDISC_DONT)
 		#self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.serverSocket.bind((self.serverHost, self.serverPort))
 		self.cachePath = "./cache/"
@@ -42,6 +50,7 @@ class ThreadedServer(object):
 			# self.extDict = json.load(self.jsonFile)
 			message = connectionSocket.recv(2048)
 			msg = message.decode()
+			print "*** Msg --------------------------------------------"
 			print msg
 			#print addr
 			first = msg.find('http')
