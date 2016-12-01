@@ -61,22 +61,26 @@ class ThreadedServer(object):
 			first = msg.find('GET')+4
 			httpIndex = msg.find('http')
 			last  = msg.find('HTTP', first+1)-1
-			url   = msg[first: last]
+			url   = str(msg[first: last])
 			host  = ''
 			hostIndex1 = msg.find('Host', last+1)
-			if hostIndex1!=-1:
+			hostIndex2 = -1
+			if hostIndex1!=-1 and httpIndex==-1:
 				hostIndex1 = msg.find(' ' , hostIndex1)+1
 				hostIndex2 = msg.find('\n', hostIndex1)
-				host = msg[hostIndex1: hostIndex2]
+				host = str(msg[hostIndex1: hostIndex2])
 				host.strip('\r')
 			print hostIndex1, hostIndex2, host
 			url = host+url
+			print url, host
 			if httpIndex==-1:
 				url='http://'+url
 			reqType = ''
-			print "url:", url
+			print "url:------------------------------------"
+			print url
+			print type(url)
 
-			if not url:
+			if (not url) or first==-1:
 				#continue
 				return
 			else:
@@ -91,8 +95,8 @@ class ThreadedServer(object):
 					try:
 						fileName = urllib2.urlopen(url)
 						self.extDict[url] = fileName.info().getheader('Content-Type')
-						print "**********************************************************"
-						print 'extDict', self.extDict
+						#print "**********************************************************"
+						#print 'extDict', self.extDict
 						chunk = fileName.read(self.size)
 						while chunk:
 							f.write(chunk)
