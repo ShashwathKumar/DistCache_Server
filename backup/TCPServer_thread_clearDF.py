@@ -25,17 +25,12 @@ class ThreadedServer(object):
 		self.size = 2048
 		self.jsonPath = './metadata/contentType.json'
 		self.jsonFile = ''
-		self.hostMapPath = './metadata/hostMap.json'
-		self.hostMapFile = ''
 		self.extDict  = {}
-		self.hostMap   = {}
 
 	def listen(self):
 	 	self.serverSocket.listen(5)
 		with open(self.jsonPath, 'r+') as self.jsonFile:
 			self.extDict = json.load(self.jsonFile)
-		with open(self.hostMapPath, 'r+') as self.hostMapFile:
-			self.hostMap  = json.load(self.hostMapFile)
 		jsonCnt=0
 		while True:
 			connectionSocket, addr = self.serverSocket.accept()
@@ -58,21 +53,12 @@ class ThreadedServer(object):
 			print "*** Msg --------------------------------------------"
 			print msg
 			#print addr
-			first = msg.find('GET')+4
-			last  = msg.find('HTTP', first+1)-1
-			url   = msg[first: last]
-			host  = ''
-			hostIndex1 = msg.find('HOST', last+1)
-			if hostIndex1!=-1:
-				hostIndex1 = msg.find(' ' , hostIndex)+1
-				hostIndex2 = msg.find('\n', hostIndex)
-				host = msg[hostIndex1: hostIndex2]
-				host.strip('\r')
-			url = host+url
+			first = msg.find('http')
+			last  = msg.find(' ', first+1)
+			url = msg[first: last]
 			reqType = ''
 			print "-----------------------------"
 			print url
-
 			if not url:
 				#continue
 				return
