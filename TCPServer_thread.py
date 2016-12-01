@@ -64,8 +64,8 @@ class ThreadedServer(object):
 			host  = ''
 			hostIndex1 = msg.find('Host', last+1)
 			if hostIndex1!=-1:
-				hostIndex1 = msg.find(' ' , hostIndex)+1
-				hostIndex2 = msg.find('\n', hostIndex)
+				hostIndex1 = msg.find(' ' , hostIndex1)+1
+				hostIndex2 = msg.find('\n', hostIndex1)
 				host = msg[hostIndex1: hostIndex2]
 				host.strip('\r')
 			url = host+url
