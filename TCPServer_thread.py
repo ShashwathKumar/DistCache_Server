@@ -56,7 +56,7 @@ class ThreadedServer(object):
 			# self.extDict = json.load(self.jsonFile)
 			message = connectionSocket.recv(2048)
 			msg = message.decode()
-			print "*** Msg --------------------------------------------"
+			print "*** Msg *************************************"
 			print msg
 			first = msg.find('GET')+4
 			httpIndex = msg.find('http')
@@ -73,15 +73,9 @@ class ThreadedServer(object):
 				host = host.strip('\n')
 			if httpIndex==-1:
 				host='http://'+host
-			print hostIndex1, hostIndex2, host
 			url = host+''+url
-			print url, host
-			print type(url)
-			print type(host)
 			reqType = ''
-			print "url:-------------------------"
-			print url
-			print "url:-------------------------"
+			print "url:", url
 
 			if (not url) or first==-1:
 				#continue
@@ -94,6 +88,7 @@ class ThreadedServer(object):
 				urlFile = re.sub('[^A-Za-z0-9_\\.]','-',url)
 				#if not os.path.isfile(self.cachePath+urlFile):
 				if url not in self.extDict:
+					print 'GETTING FROM NET'
 					f = open(self.cachePath+urlFile, 'w+')
 					try:
 						fileName = urllib2.urlopen(url)
@@ -108,10 +103,12 @@ class ThreadedServer(object):
 						#urllib.urlretrieve(url, urlFile) 
 					except urllib2.HTTPError:
 						return
+				else:
+					print 'GETTING FROM CACHE'
 				f = open(self.cachePath+urlFile, 'rb')
 				html = f.read(self.size)
 				print "*********************************************************"
-				print 'url', url
+				#print 'url', url
 				connectionSocket.send("HTTP/1.1 200 OK\r\n"+
 				"Content-Type: "+self.extDict[url]+"\r\n"+
 				"\r\n")
