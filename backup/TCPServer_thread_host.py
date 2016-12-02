@@ -26,19 +26,18 @@ class ThreadedServer(object):
 		self.cachePath = "./cache/"
 		self.size = 2048
 		self.jsonPath = './metadata/contentType.json'
-		if not os.path.isdir(self.cachePath):
-			os.makedirs(self.cachePath)
-		if not os.path.isfile(self.jsonPath):
-			if not os.path.isdir('./metadata/'):
-				os.makedirs('./metadata/')
-			open(self.jsonPath, 'w+')
 		self.jsonFile = ''
+		self.hostMapPath = './metadata/hostMap.json'
+		self.hostMapFile = ''
 		self.extDict  = {}
+		self.hostMap   = {}
 
 	def listen(self):
 	 	self.serverSocket.listen(5)
 		with open(self.jsonPath, 'r+') as self.jsonFile:
 			self.extDict = json.load(self.jsonFile)
+		with open(self.hostMapPath, 'r+') as self.hostMapFile:
+			self.hostMap  = json.load(self.hostMapFile)
 		jsonCnt=0
 		while True:
 			connectionSocket, addr = self.serverSocket.accept()
