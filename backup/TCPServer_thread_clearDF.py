@@ -1,9 +1,7 @@
 from socket import *
-from urlparse import urljoin
 import thread
 import urllib, urllib2
 import os.path
-#from os import 
 import re
 import threading 
 import json
@@ -27,17 +25,12 @@ class ThreadedServer(object):
 		self.size = 2048
 		self.jsonPath = './metadata/contentType.json'
 		self.jsonFile = ''
-		self.hostMapPath = './metadata/hostMap.json'
-		self.hostMapFile = ''
 		self.extDict  = {}
-		self.hostMap   = {}
 
 	def listen(self):
 	 	self.serverSocket.listen(5)
 		with open(self.jsonPath, 'r+') as self.jsonFile:
 			self.extDict = json.load(self.jsonFile)
-		with open(self.hostMapPath, 'r+') as self.hostMapFile:
-			self.hostMap  = json.load(self.hostMapFile)
 		jsonCnt=0
 		while True:
 			connectionSocket, addr = self.serverSocket.accept()
@@ -57,45 +50,32 @@ class ThreadedServer(object):
 			# self.extDict = json.load(self.jsonFile)
 			message = connectionSocket.recv(2048)
 			msg = message.decode()
-			print "**********************************************"
+			print "*** Msg --------------------------------------------"
 			print msg
-			first = msg.find('GET')+4
-			httpIndex = msg.find('http')
-			last  = msg.find('HTTP', first+1)-1
-			url   = str(msg[first: last])
-			host  = ''
-			hostIndex1 = msg.find('Host', last+1)
-			hostIndex2 = -1
-			if hostIndex1!=-1 and httpIndex==-1:
-				hostIndex1 = msg.find(' ' , hostIndex1)+1
-				hostIndex2 = msg.find('\n', hostIndex1)
-				host = str(msg[hostIndex1: hostIndex2])
-				host = host.strip('\r')
-				host = host.strip('\n')
-			if httpIndex==-1:
-				host='http://'+host
-			url = host+''+url
+			#print addr
+			first = msg.find('http')
+			last  = msg.find(' ', first+1)
+			url = msg[first: last]
 			reqType = ''
-			print "url:", url
-
-			if (not url) or first==-1:
+			print "-----------------------------"
+			print url
+			if not url:
 				#continue
 				return
 			else:
 				firstType = msg.find('Accept: ')
 				lastType  = msg.find('\r\n',firstType)
 				reqType   = msg[firstType+8: lastType]
-				#print reqType	
+				print reqType	
 				urlFile = re.sub('[^A-Za-z0-9_\\.]','-',url)
 				#if not os.path.isfile(self.cachePath+urlFile):
 				if url not in self.extDict:
-					print 'GETTING FROM NET'
 					f = open(self.cachePath+urlFile, 'w+')
 					try:
 						fileName = urllib2.urlopen(url)
 						self.extDict[url] = fileName.info().getheader('Content-Type')
-						#print "**********************************************************"
-						#print 'extDict', self.extDict
+						print "**********************************************************"
+						print 'extDict', self.extDict
 						chunk = fileName.read(self.size)
 						while chunk:
 							f.write(chunk)
@@ -104,12 +84,10 @@ class ThreadedServer(object):
 						#urllib.urlretrieve(url, urlFile) 
 					except urllib2.HTTPError:
 						return
-				else:
-					print 'GETTING FROM CACHE'
 				f = open(self.cachePath+urlFile, 'rb')
 				html = f.read(self.size)
 				print "*********************************************************"
-				#print 'url', url
+				print 'url', url
 				connectionSocket.send("HTTP/1.1 200 OK\r\n"+
 				"Content-Type: "+self.extDict[url]+"\r\n"+
 				"\r\n")
@@ -129,7 +107,6 @@ class ThreadedServer(object):
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
 		finally:
-			print "\n\n\n"
 			with open(self.jsonPath, 'r+') as self.jsonFile:
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
