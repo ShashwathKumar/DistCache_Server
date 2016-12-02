@@ -69,18 +69,19 @@ class ThreadedServer(object):
 				hostIndex1 = msg.find(' ' , hostIndex1)+1
 				hostIndex2 = msg.find('\n', hostIndex1)
 				host = str(msg[hostIndex1: hostIndex2])
-				host.strip('\\r')
-				host.strip('\\n')
+				host = host.strip('\r')
+				host = host.strip('\n')
+			if httpIndex==-1:
+				host='http://'+host
 			print hostIndex1, hostIndex2, host
-			url=urljoin(host,url)
+			url = host+''+url
 			print url, host
 			print type(url)
 			print type(host)
-			if httpIndex==-1:
-				url=urljoin('http://',url)
 			reqType = ''
 			print "url:-------------------------"
 			print url
+			print "url:-------------------------"
 
 			if (not url) or first==-1:
 				#continue
