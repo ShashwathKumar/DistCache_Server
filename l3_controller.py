@@ -201,10 +201,10 @@ class l3_switch (EventMixin):
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          log.info("assigning cache for a new dstaddr: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], packet.next.dstip)
+          log.info("assigning new cache for a new dstaddr: cache assigned :%s for dest addr:%s", dstCacheDict[dstaddr], packet.next.dstip)
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
-        log.info("changing destination IP to cache ip: cache:%s, dstaddr:%s", dstaddr , packet.next.dstip )
+        log.info("changing actual destination IP : %s to cache ip : %s", packet.next.dstip, dstaddr)
 
       # if dstaddr in dstCacheDict:
       #   dstaddr = dstCacheDict[dstaddr]
@@ -223,8 +223,8 @@ class l3_switch (EventMixin):
           log.warning("%i %i not sending packet for %s back out of the "
                       "input port" % (dpid, inport, dstaddr))
         else:
-          log.info("%i %i installing flow for %s => %s out port %i"
-                    % (dpid, inport, packet.next.srcip, packet.next.dstip, prt))
+          log.info("For packet in on switch %i via port %i installing flow for source %s => destination %s to go on out port %i in the switch %i"
+                    % (dpid, inport, packet.next.srcip, packet.next.dstip, prt, dpid))
 
           actions = []
           actions.append(of.ofp_action_dl_addr.set_dst(mac))
