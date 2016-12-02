@@ -200,8 +200,18 @@ class l3_switch (EventMixin):
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
-          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          log.info("assigning new cache for a new dstaddr: cache assigned :%s for dest addr:%s", dstCacheDict[dstaddr], packet.next.dstip)
+          if cacheCnt == 0 and cache1Down:
+            cacheCnt=1-cacheCnt
+            log.info("**********************cache 1 is down**********************")
+          if cacheCnt == 1 and cache2Down:  
+            cacheCnt=1-cacheCnt
+            log.info("**********************cache 2 is down**********************")
+          if cache1Down and cache2Down:
+            log.info("**********************cache 1 & 2 are down => reroute to router **********************")
+            dstCacheDict[dstaddr] = IPAddr('192.168.1.2')
+          else
+            dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
+            log.info("assigning new cache for a new dstaddr: cache assigned :%s for dest addr:%s", dstCacheDict[dstaddr], packet.next.dstip)
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
         log.info("changing actual destination IP : %s to cache ip : %s", packet.next.dstip, dstaddr)
@@ -322,11 +332,22 @@ class l3_switch (EventMixin):
 
       dstaddr = a.protodst# dest IP
       spoofingmac = False
+
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
-          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], a.protodst)
+          if cacheCnt == 0 and cache1Down:
+            cacheCnt=1-cacheCnt
+            log.info("**********************cache 1 is down**********************")
+          if cacheCnt == 1 and cache2Down:  
+            cacheCnt=1-cacheCnt
+            log.info("**********************cache 2 is down**********************")
+          if cache1Down and cache2Down:
+            log.info("**********************cache 1 & 2 are down => reroute to router **********************")
+            dstCacheDict[dstaddr] = IPAddr('192.168.1.2')
+          else
+            dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
+            log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], a.protodst)
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
