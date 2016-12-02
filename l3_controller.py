@@ -308,7 +308,7 @@ class l3_switch (EventMixin):
         # And ARP...
         self.outstanding_arps[(dpid,dstaddr)] = time.time() + 4
 
-        r = arp()r
+        r = arp()
         r.hwtype = r.HW_TYPE_ETHERNET
         r.prototype = r.PROTO_TYPE_IP
         r.hwlen = 6
