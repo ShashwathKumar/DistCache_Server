@@ -327,7 +327,7 @@ class l3_switch (EventMixin):
         dstaddr = IPAddr(dstCacheDict[dstaddr])
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
-      if dstaddr in nwHosts:
+      if dstaddr != a.protodst:
         spoofingmac = True
 
       if a.prototype == arp.PROTO_TYPE_IP:
