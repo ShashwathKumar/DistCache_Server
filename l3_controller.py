@@ -346,7 +346,7 @@ class l3_switch (EventMixin):
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
 
-      if packet.next.dstip not in nwHosts:
+      if a.protodst not in nwHosts:
         if dstaddr == IPAddr('192.168.1.4') and cache1Down:
           cacheCnt=1-cacheCnt
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
