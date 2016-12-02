@@ -328,7 +328,7 @@ class l3_switch (EventMixin):
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
       if dstaddr in nwHosts:
-        spoofingMAC = True
+        spoofingmac = True
 
       if a.prototype == arp.PROTO_TYPE_IP:
         if a.hwtype == arp.HW_TYPE_ETHERNET:
@@ -377,7 +377,7 @@ class l3_switch (EventMixin):
                   e.set_payload(r)
                   
                   ######################################################################################################################
-                  if spoofingmac
+                  if spoofingmac:
                       log.info("Switch %i on port %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
                   else:
                       log.info("Switch %i on port %i answering ARP for %s to %s with the mac %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
