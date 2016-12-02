@@ -3,6 +3,7 @@ from urlparse import urljoin
 import thread
 import urllib, urllib2
 import os.path
+from os import 
 import re
 import threading 
 import json
@@ -56,7 +57,7 @@ class ThreadedServer(object):
 			# self.extDict = json.load(self.jsonFile)
 			message = connectionSocket.recv(2048)
 			msg = message.decode()
-			print "*** Msg *************************************"
+			print "**********************************************"
 			print msg
 			first = msg.find('GET')+4
 			httpIndex = msg.find('http')
@@ -84,7 +85,7 @@ class ThreadedServer(object):
 				firstType = msg.find('Accept: ')
 				lastType  = msg.find('\r\n',firstType)
 				reqType   = msg[firstType+8: lastType]
-				print reqType	
+				#print reqType	
 				urlFile = re.sub('[^A-Za-z0-9_\\.]','-',url)
 				#if not os.path.isfile(self.cachePath+urlFile):
 				if url not in self.extDict:
@@ -128,7 +129,7 @@ class ThreadedServer(object):
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
 		finally:
-			print "---------------------------------------------------------"
+			print "\n\n\n"
 			with open(self.jsonPath, 'r+') as self.jsonFile:
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
