@@ -1,29 +1,4 @@
-# Copyright 2012-2013 James McCauley
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at:
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""
-A stupid L3 switch
-
-For each switch:
-1) Keep a table that maps IP addresses to MAC addresses and switch ports.
-   Stock this table using information from ARP and IP packets.
-2) When you see an ARP query, try to answer it using information in the table
-   from step 1.  If the info in the table is old, just flood the query.
-3) Flood all other ARPs.
-4) When you see an IP packet, if you know the destination port (because it's
-   in the table from step 1), install a flow for it.
-"""
+#reference from apache l3_learning
 
 from pox.core import core
 import pox
@@ -43,10 +18,10 @@ from pox.lib.revent import *
 import time
 
 # Timeout for flows
-FLOW_IDLE_TIMEOUT = 10
+FLOW_IDLE_TIMEOUT = 10000
 
 # Timeout for ARP entries
-ARP_TIMEOUT = 60 * 2
+ARP_TIMEOUT = 60 * 60
 
 # Maximum number of packet to buffer on a switch for an unknown IP
 MAX_BUFFERED_PER_IP = 5
@@ -56,11 +31,15 @@ MAX_BUFFER_TIME = 5
 
 #HackAlert
 cache = ['192.168.1.4', '192.168.1.5']
+cache1Down = False
+cache1checker = False
+cache2Down = False
+cache2checker = False
 cacheCnt = 0
 dstCacheDict = {}
 nwHosts = set()
 
-for i in xrange(1,16):
+for i in xrange(1,6):
   nwHosts.add(IPAddr('192.168.1.'+str(i)))
 nwHosts.add(IPAddr('0.0.0.0'))
 nwHosts.add(IPAddr('255.255.255.255'))
@@ -163,7 +142,7 @@ class l3_switch (EventMixin):
         core.openflow.sendToDPID(dpid, po)
 
   def _handle_openflow_PacketIn (self, event):
-    global cache, cacheCnt, dstCacheDict, nwHosts
+    global cache, cacheCnt, dstCacheDict, nwHosts, cache1checker, cache2checker, cache1Down, cache2Down
     dpid = event.connection.dpid
     inport = event.port
     packet = event.parsed
@@ -192,7 +171,7 @@ class l3_switch (EventMixin):
       # Learn or update port/MAC info
       if packet.next.srcip in self.arpTable[dpid]:
         if self.arpTable[dpid][packet.next.srcip] != (inport, packet.src):
-          log.info("%i %i RE-learned %s", dpid,inport,packet.next.srcip)
+          log.debug("%i %i RE-learned %s", dpid,inport,packet.next.srcip)
           if self.wide:
             # Make sure we don't have any entries with the old info...
             msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
@@ -206,12 +185,12 @@ class l3_switch (EventMixin):
       # Try to forward
       dstaddr = packet.next.dstip
 
-      print nwHosts
+      #print nwHosts
 
-      print dstCacheDict
+      #print dstCacheDict
 
-      print dstaddr
-      print type(dstaddr)
+      #print dstaddr
+      #print type(dstaddr)
 
       #for p in nwHosts: log.info("Hosts - %s",p) # print hosts
 
@@ -244,13 +223,13 @@ class l3_switch (EventMixin):
           log.warning("%i %i not sending packet for %s back out of the "
                       "input port" % (dpid, inport, dstaddr))
         else:
-          log.debug("%i %i installing flow for %s => %s out port %i"
+          log.info("%i %i installing flow for %s => %s out port %i"
                     % (dpid, inport, packet.next.srcip, packet.next.dstip, prt))
 
           actions = []
           actions.append(of.ofp_action_dl_addr.set_dst(mac))
           actions.append(of.ofp_action_nw_addr.set_dst(dstaddr))
-          actions.append(of.ofp_action_tp_port.set_dst(8080))
+          #actions.append(of.ofp_action_tp_port.set_dst(80))
           actions.append(of.ofp_action_output(port = prt))
           
           #if self.wide:
@@ -259,7 +238,7 @@ class l3_switch (EventMixin):
           #  match = of.ofp_match.from_packet(packet, inport)
 
           msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
-                                idle_timeout=18000,
+                                idle_timeout=FLOW_IDLE_TIMEOUT,
                                 hard_timeout=of.OFP_FLOW_PERMANENT,
                                 buffer_id=event.ofp.buffer_id,
                                 actions=actions,
@@ -271,7 +250,7 @@ class l3_switch (EventMixin):
           actions = []
           #actions.append(of.ofp_action_dl_addr.set_dst(mac))
           actions.append(of.ofp_action_nw_addr.set_src(packet.next.dstip))
-          actions.append(of.ofp_action_tp_port.set_dst(8080))
+          #actions.append(of.ofp_action_tp_port.set_dst(8080))
           actions.append(of.ofp_action_output(port = inport))
           
           #if self.wide:
@@ -280,7 +259,7 @@ class l3_switch (EventMixin):
           #  match = of.ofp_match.from_packet(packet, inport)
 
           msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
-                                idle_timeout=18000,
+                                idle_timeout=FLOW_IDLE_TIMEOUT,
                                 hard_timeout=of.OFP_FLOW_PERMANENT,
                                 buffer_id=of.NO_BUFFER,
                                 actions=actions,
@@ -342,6 +321,7 @@ class l3_switch (EventMixin):
        'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
 
       dstaddr = a.protodst# dest IP
+      spoofingmac = False
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
@@ -351,6 +331,9 @@ class l3_switch (EventMixin):
         dstaddr = IPAddr(dstCacheDict[dstaddr])
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
+      if dstaddr != a.protodst:
+        spoofingmac = True
+
       if a.prototype == arp.PROTO_TYPE_IP:
         if a.hwtype == arp.HW_TYPE_ETHERNET:
           if a.protosrc != 0:
@@ -358,7 +341,7 @@ class l3_switch (EventMixin):
             # Learn or update port/MAC info
             if a.protosrc in self.arpTable[dpid]:
               if self.arpTable[dpid][a.protosrc] != (inport, packet.src):
-                log.info("%i %i RE-learned %s", dpid,inport,a.protosrc)
+                log.debug("%i %i RE-learned %s", dpid,inport,a.protosrc)
                 if self.wide:
                   # Make sure we don't have any entries with the old info...
                   msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
@@ -372,6 +355,8 @@ class l3_switch (EventMixin):
             # Send any waiting packets...
             self._send_lost_buffers(dpid, a.protosrc, packet.src, inport)
 
+            
+            # start evaluating ARP requests
             if a.opcode == arp.REQUEST:
               # Maybe we can answer
 
@@ -380,6 +365,14 @@ class l3_switch (EventMixin):
 
                 if not self.arpTable[dpid][dstaddr].isExpired():
                   # .. and it's relatively current, so we'll reply ourselves
+
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4':
+                    cache1checker = False
+                    cache1Down = False
+                  
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
+                    cache2checker = False
+                    cache2Down = False
 
                   r = arp()
                   r.hwtype = a.hwtype
@@ -394,8 +387,14 @@ class l3_switch (EventMixin):
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
-                  log.debug("%i %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,
-                   a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
+                  
+                  ######################################################################################################################
+                  if spoofingmac:
+                      log.info("Switch %i on port %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
+                  else:
+                      log.info("Switch %i on port %i answering ARP for %s to %s with the mac %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
+                  ######################################################################################################################         
+                  
                   msg = of.ofp_packet_out()
                   msg.data = e.pack()
                   msg.actions.append(of.ofp_action_output(port =
@@ -404,8 +403,30 @@ class l3_switch (EventMixin):
                   event.connection.send(msg)
                   return
 
+                else:    
+
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4': #entry is expired  -set checker is true
+                    if cache1checker:
+                      cache1Down = True
+                      log.info("**************Cache1 is down**************")
+                    else:
+                      cache1checker = True
+                  
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
+                    if cache2checker:
+                      cache2Down = True
+                      log.info("**************Cache2 is down**************")
+                    else:
+                      cache2checker = True
+
+
+
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
       #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
+
+
+
+
       if a.opcode == arp.REQUEST:
         r = arp()
         r.hwtype = a.hwtype
@@ -420,7 +441,7 @@ class l3_switch (EventMixin):
         e = ethernet(type=packet.type, src=packet.src,
                      dst=ETHER_BROADCAST)
         e.set_payload(r)
-        log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+        log.info("Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
         msg = of.ofp_packet_out()
         msg.data = e.pack()
         msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
@@ -441,4 +462,3 @@ def launch (fakeways="", arp_for_unknowns=None, wide=False):
   else:
     arp_for_unknowns = str_to_bool(arp_for_unknowns)
   core.registerNew(l3_switch, fakeways, arp_for_unknowns, wide)
-
