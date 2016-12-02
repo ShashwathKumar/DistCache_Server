@@ -1,29 +1,4 @@
-# Copyright 2012-2013 James McCauley
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at:
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""
-A stupid L3 switch
-
-For each switch:
-1) Keep a table that maps IP addresses to MAC addresses and switch ports.
-   Stock this table using information from ARP and IP packets.
-2) When you see an ARP query, try to answer it using information in the table
-   from step 1.  If the info in the table is old, just flood the query.
-3) Flood all other ARPs.
-4) When you see an IP packet, if you know the destination port (because it's
-   in the table from step 1), install a flow for it.
-"""
+#reference from apache l3_learning
 
 from pox.core import core
 import pox
@@ -206,12 +181,12 @@ class l3_switch (EventMixin):
       # Try to forward
       dstaddr = packet.next.dstip
 
-      print nwHosts
+      #print nwHosts
 
-      print dstCacheDict
+      #print dstCacheDict
 
-      print dstaddr
-      print type(dstaddr)
+      #print dstaddr
+      #print type(dstaddr)
 
       #for p in nwHosts: log.info("Hosts - %s",p) # print hosts
 
