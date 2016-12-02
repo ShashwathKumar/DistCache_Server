@@ -18,7 +18,7 @@ from pox.lib.revent import *
 import time
 
 # Timeout for flows
-FLOW_IDLE_TIMEOUT = 10
+FLOW_IDLE_TIMEOUT = 10000
 
 # Timeout for ARP entries
 ARP_TIMEOUT = 60 * 60
