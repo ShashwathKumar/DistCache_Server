@@ -31,6 +31,10 @@ MAX_BUFFER_TIME = 5
 
 #HackAlert
 cache = ['192.168.1.4', '192.168.1.5']
+cache1Down = False
+cache1checker = False
+cache2Down = False
+cache2checker = False
 cacheCnt = 0
 dstCacheDict = {}
 nwHosts = set()
@@ -138,7 +142,7 @@ class l3_switch (EventMixin):
         core.openflow.sendToDPID(dpid, po)
 
   def _handle_openflow_PacketIn (self, event):
-    global cache, cacheCnt, dstCacheDict, nwHosts
+    global cache, cacheCnt, dstCacheDict, nwHosts, cache1checker, cache2checker, cache1Down, cache2Down
     dpid = event.connection.dpid
     inport = event.port
     packet = event.parsed
@@ -362,6 +366,14 @@ class l3_switch (EventMixin):
                 if not self.arpTable[dpid][dstaddr].isExpired():
                   # .. and it's relatively current, so we'll reply ourselves
 
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4':
+                    cache1checker = False
+                    cache1Down = False
+                  
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
+                    cache2checker = False
+                    cache2Down = False
+
                   r = arp()
                   r.hwtype = a.hwtype
                   r.prototype = a.prototype
@@ -391,8 +403,30 @@ class l3_switch (EventMixin):
                   event.connection.send(msg)
                   return
 
+                else:    
+
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4': #entry is expired  -set checker is true
+                    if cache1checker:
+                      cache1Down = True
+                      log.info("**************Cache1 is down**************")
+                    else:
+                      cache1checker = True
+                  
+                  if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
+                    if cache2checker:
+                      cache2Down = True
+                      log.info("**************Cache2 is down**************")
+                    else:
+                      cache2checker = True
+
+
+
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
       #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
+
+
+
+
       if a.opcode == arp.REQUEST:
         r = arp()
         r.hwtype = a.hwtype
