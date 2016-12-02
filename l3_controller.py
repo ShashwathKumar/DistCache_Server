@@ -60,7 +60,7 @@ cacheCnt = 0
 dstCacheDict = {}
 nwHosts = set()
 
-for i in xrange(1,5):
+for i in xrange(1,6):
   nwHosts.add(IPAddr('192.168.1.'+str(i)))
 nwHosts.add(IPAddr('0.0.0.0'))
 nwHosts.add(IPAddr('255.255.255.255'))
