@@ -3,7 +3,7 @@ from urlparse import urljoin
 import thread
 import urllib, urllib2
 import os.path
-from os import 
+#from os import 
 import re
 import threading 
 import json
