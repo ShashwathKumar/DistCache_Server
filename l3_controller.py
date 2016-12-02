@@ -167,7 +167,7 @@ class l3_switch (EventMixin):
       # Learn or update port/MAC info
       if packet.next.srcip in self.arpTable[dpid]:
         if self.arpTable[dpid][packet.next.srcip] != (inport, packet.src):
-          log.info("%i %i RE-learned %s", dpid,inport,packet.next.srcip)
+          log.debug("%i %i RE-learned %s", dpid,inport,packet.next.srcip)
           if self.wide:
             # Make sure we don't have any entries with the old info...
             msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
@@ -219,7 +219,7 @@ class l3_switch (EventMixin):
           log.warning("%i %i not sending packet for %s back out of the "
                       "input port" % (dpid, inport, dstaddr))
         else:
-          log.debug("%i %i installing flow for %s => %s out port %i"
+          log.info("%i %i installing flow for %s => %s out port %i"
                     % (dpid, inport, packet.next.srcip, packet.next.dstip, prt))
 
           actions = []
@@ -333,7 +333,7 @@ class l3_switch (EventMixin):
             # Learn or update port/MAC info
             if a.protosrc in self.arpTable[dpid]:
               if self.arpTable[dpid][a.protosrc] != (inport, packet.src):
-                log.info("%i %i RE-learned %s", dpid,inport,a.protosrc)
+                log.debug("%i %i RE-learned %s", dpid,inport,a.protosrc)
                 if self.wide:
                   # Make sure we don't have any entries with the old info...
                   msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
@@ -369,7 +369,7 @@ class l3_switch (EventMixin):
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
-                  log.debug("%i %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,
+                  log.info("%i %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,
                    a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
                   msg = of.ofp_packet_out()
                   msg.data = e.pack()
@@ -395,7 +395,7 @@ class l3_switch (EventMixin):
         e = ethernet(type=packet.type, src=packet.src,
                      dst=ETHER_BROADCAST)
         e.set_payload(r)
-        log.debug("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+        log.info("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
         msg = of.ofp_packet_out()
         msg.data = e.pack()
         msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
