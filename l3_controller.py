@@ -209,7 +209,7 @@ class l3_switch (EventMixin):
           if cache1Down and cache2Down:
             log.info("**********************cache 1 & 2 are down => reroute to router **********************")
             dstCacheDict[dstaddr] = IPAddr('192.168.1.2')
-          else
+          else:
             dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
             log.info("assigning new cache for a new dstaddr: cache assigned :%s for dest addr:%s", dstCacheDict[dstaddr], packet.next.dstip)
           cacheCnt=1-cacheCnt
@@ -303,7 +303,7 @@ class l3_switch (EventMixin):
         # And ARP...
         self.outstanding_arps[(dpid,dstaddr)] = time.time() + 4
 
-        r = arp()
+        r = arp()r
         r.hwtype = r.HW_TYPE_ETHERNET
         r.prototype = r.PROTO_TYPE_IP
         r.hwlen = 6
@@ -345,7 +345,7 @@ class l3_switch (EventMixin):
           if cache1Down and cache2Down:
             log.info("**********************cache 1 & 2 are down => reroute to router **********************")
             dstCacheDict[dstaddr] = IPAddr('192.168.1.2')
-          else
+          else:
             dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
             log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], a.protodst)
           cacheCnt=1-cacheCnt
