@@ -21,7 +21,7 @@ import time
 FLOW_IDLE_TIMEOUT = 10
 
 # Timeout for ARP entries
-ARP_TIMEOUT = 60 * 2
+ARP_TIMEOUT = 60 * 60
 
 # Maximum number of packet to buffer on a switch for an unknown IP
 MAX_BUFFERED_PER_IP = 5
