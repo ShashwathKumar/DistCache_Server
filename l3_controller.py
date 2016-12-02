@@ -317,6 +317,7 @@ class l3_switch (EventMixin):
        'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
 
       dstaddr = a.protodst# dest IP
+      spoofingMAC = False
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
@@ -325,6 +326,9 @@ class l3_switch (EventMixin):
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
+
+      if dstaddr in nwHosts:
+        spoofingMAC = True
 
       if a.prototype == arp.PROTO_TYPE_IP:
         if a.hwtype == arp.HW_TYPE_ETHERNET:
@@ -347,6 +351,8 @@ class l3_switch (EventMixin):
             # Send any waiting packets...
             self._send_lost_buffers(dpid, a.protosrc, packet.src, inport)
 
+            
+            # start evaluating ARP requests
             if a.opcode == arp.REQUEST:
               # Maybe we can answer
 
@@ -369,8 +375,14 @@ class l3_switch (EventMixin):
                   e = ethernet(type=packet.type, src=dpid_to_mac(dpid),
                                dst=a.hwsrc)
                   e.set_payload(r)
-                  log.info("%i %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,
-                   a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
+                  
+                  ######################################################################################################################
+                  if spoofingMAC
+                      log.info("Switch %i on port %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
+                  else:
+                      log.info("Switch %i on port %i answering ARP for %s to %s with the mac %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
+                  ######################################################################################################################         
+                  
                   msg = of.ofp_packet_out()
                   msg.data = e.pack()
                   msg.actions.append(of.ofp_action_output(port =
@@ -395,7 +407,7 @@ class l3_switch (EventMixin):
         e = ethernet(type=packet.type, src=packet.src,
                      dst=ETHER_BROADCAST)
         e.set_payload(r)
-        log.info("%i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+        log.info("Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
         msg = of.ofp_packet_out()
         msg.data = e.pack()
         msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
