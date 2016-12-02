@@ -250,7 +250,7 @@ class l3_switch (EventMixin):
           actions = []
           actions.append(of.ofp_action_dl_addr.set_dst(mac))
           actions.append(of.ofp_action_nw_addr.set_dst(dstaddr))
-          actions.append(of.ofp_action_tp_port.set_dst(8080))
+          #actions.append(of.ofp_action_tp_port.set_dst(80))
           actions.append(of.ofp_action_output(port = prt))
           
           #if self.wide:
@@ -259,7 +259,7 @@ class l3_switch (EventMixin):
           #  match = of.ofp_match.from_packet(packet, inport)
 
           msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
-                                idle_timeout=18000,
+                                idle_timeout=FLOW_IDLE_TIMEOUT,
                                 hard_timeout=of.OFP_FLOW_PERMANENT,
                                 buffer_id=event.ofp.buffer_id,
                                 actions=actions,
@@ -271,7 +271,7 @@ class l3_switch (EventMixin):
           actions = []
           #actions.append(of.ofp_action_dl_addr.set_dst(mac))
           actions.append(of.ofp_action_nw_addr.set_src(packet.next.dstip))
-          actions.append(of.ofp_action_tp_port.set_dst(8080))
+          #actions.append(of.ofp_action_tp_port.set_dst(8080))
           actions.append(of.ofp_action_output(port = inport))
           
           #if self.wide:
@@ -280,7 +280,7 @@ class l3_switch (EventMixin):
           #  match = of.ofp_match.from_packet(packet, inport)
 
           msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
-                                idle_timeout=18000,
+                                idle_timeout=FLOW_IDLE_TIMEOUT,
                                 hard_timeout=of.OFP_FLOW_PERMANENT,
                                 buffer_id=of.NO_BUFFER,
                                 actions=actions,
