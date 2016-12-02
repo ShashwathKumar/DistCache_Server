@@ -317,7 +317,7 @@ class l3_switch (EventMixin):
        'op:%i' % (a.opcode,)), a.protosrc, a.protodst)
 
       dstaddr = a.protodst# dest IP
-      spoofingMAC = False
+      spoofingmac = False
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
@@ -377,7 +377,7 @@ class l3_switch (EventMixin):
                   e.set_payload(r)
                   
                   ######################################################################################################################
-                  if spoofingMAC
+                  if spoofingmac
                       log.info("Switch %i on port %i answering ARP for %s to %s with the mac of the cache %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
                   else:
                       log.info("Switch %i on port %i answering ARP for %s to %s with the mac %s switch %s" % (dpid, inport,a.protodst,a.protosrc, r.hwsrc, dpid_to_mac(dpid)))
