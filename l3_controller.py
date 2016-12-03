@@ -521,7 +521,7 @@ class l3_switch (EventMixin):
         msg.in_port = inport
         event.connection.send(msg)
 
-        if cache1Down
+        if cache1Down && dstaddr != IPAddr('192.168.1.4')
           r = arp()
           r.hwtype = a.hwtype
           r.prototype = a.prototype
@@ -535,14 +535,14 @@ class l3_switch (EventMixin):
           e = ethernet(type=packet.type, src=packet.src,
                        dst=ETHER_BROADCAST)
           e.set_payload(r)
-          log.info("Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+          log.debug("Checking if cache up Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
           msg = of.ofp_packet_out()
           msg.data = e.pack()
           msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
           msg.in_port = inport
           event.connection.send(msg)
 
-        if cache2Down
+        if cache2Down && && dstaddr != IPAddr('192.168.1.5')
           r = arp()
           r.hwtype = a.hwtype
           r.prototype = a.prototype
@@ -556,7 +556,7 @@ class l3_switch (EventMixin):
           e = ethernet(type=packet.type, src=packet.src,
                        dst=ETHER_BROADCAST)
           e.set_payload(r)
-          log.info("Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+          log.debug("Checking if cache up Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
           msg = of.ofp_packet_out()
           msg.data = e.pack()
           msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
