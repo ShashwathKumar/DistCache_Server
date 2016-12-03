@@ -215,14 +215,24 @@ class l3_switch (EventMixin):
           dstaddr = IPAddr(dstCacheDict[dstaddr])
           cacheCnt=1-cacheCnt
           log.info("**********************cache 1 is down**********************")
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = packet.next.dstip
+          msg.match.dl_type = ethernet.IP_TYPE
+          event.connection.send(msg)
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
           dstaddr = IPAddr(dstCacheDict[dstaddr])
           cacheCnt=1-cacheCnt
           log.info("**********************cache 2 is down**********************")
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = packet.next.dstip
+          msg.match.dl_type = ethernet.IP_TYPE
         if cache1Down and cache2Down:
           log.info("**********************cache 1 & 2 are down => reroute to router **********************")
           dstaddr = IPAddr('192.168.1.2')
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = packet.next.dstip
+          msg.match.dl_type = ethernet.IP_TYPE
         log.info("changing actual destination IP : %s to cache ip : %s", packet.next.dstip, dstaddr)
 
       # if dstaddr in dstCacheDict:
@@ -404,12 +414,12 @@ class l3_switch (EventMixin):
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4':
                     cache1checker = False
                     cache1Down = False
-                    cache1checkerCount = 0
+                    cache1checkerCount = 10
                   
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
                     cache2checker = False
                     cache2Down = False
-                    cache2checkerCount = 0
+                    cache2checkerCount = 10
 
                   r = arp()
                   r.hwtype = a.hwtype
@@ -450,7 +460,7 @@ class l3_switch (EventMixin):
                       if cache1checkerCount == 0:
                         cache1checker = True
                       else:
-                        cache1checkerCount=cache1checkerCount-1;
+                        cache1checkerCount=cache1checkerCount-1
                   
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
                     if cache2checker:
@@ -460,7 +470,7 @@ class l3_switch (EventMixin):
                       if cache2checkerCount == 0:
                         cache2checker = True
                       else:
-                        cache2checkerCount=cache2checkerCount-1;
+                        cache2checkerCount=cache2checkerCount-1
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
       #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
 
