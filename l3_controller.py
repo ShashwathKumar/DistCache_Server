@@ -520,6 +520,49 @@ class l3_switch (EventMixin):
         msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
         msg.in_port = inport
         event.connection.send(msg)
+
+        if cache1Down
+          r = arp()
+          r.hwtype = a.hwtype
+          r.prototype = a.prototype
+          r.hwlen = a.hwlen
+          r.protolen = a.protolen
+          r.opcode = a.opcode
+          r.hwdst = ETHER_BROADCAST
+          r.protodst = IPAddr('192.168.1.4')
+          r.hwsrc = a.hwsrc
+          r.protosrc = a.protosrc
+          e = ethernet(type=packet.type, src=packet.src,
+                       dst=ETHER_BROADCAST)
+          e.set_payload(r)
+          log.info("Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+          msg = of.ofp_packet_out()
+          msg.data = e.pack()
+          msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+          msg.in_port = inport
+          event.connection.send(msg)
+
+        if cache2Down
+          r = arp()
+          r.hwtype = a.hwtype
+          r.prototype = a.prototype
+          r.hwlen = a.hwlen
+          r.protolen = a.protolen
+          r.opcode = a.opcode
+          r.hwdst = ETHER_BROADCAST
+          r.protodst = IPAddr('192.168.1.5')
+          r.hwsrc = a.hwsrc
+          r.protosrc = a.protosrc
+          e = ethernet(type=packet.type, src=packet.src,
+                       dst=ETHER_BROADCAST)
+          e.set_payload(r)
+          log.info("Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+          msg = of.ofp_packet_out()
+          msg.data = e.pack()
+          msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+          msg.in_port = inport
+          event.connection.send(msg)
+
       else:
         msg = of.ofp_packet_out(in_port = inport, data = event.ofp,
             action = of.ofp_action_output(port = of.OFPP_FLOOD))
