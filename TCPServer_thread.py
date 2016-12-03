@@ -3,11 +3,11 @@ from urlparse import urljoin
 import thread
 import urllib, urllib2
 import os
-#from os import 
 import re
 import threading 
 import json
-
+import time
+import requests
 
 IP_MTU_DISCOVER   = 10
 IP_PMTUDISC_DONT  =  0  # Never send DF frames.
@@ -26,14 +26,16 @@ class ThreadedServer(object):
 		self.cachePath = "./cache/"
 		self.size = 2048
 		self.jsonPath = './metadata/contentType.json'
+		self.jsonFile = ''
+		self.extDict  = {}
+		self.TTL = 60
 		if not os.path.isdir(self.cachePath):
 			os.makedirs(self.cachePath)
 		if not os.path.isfile(self.jsonPath):
 			if not os.path.isdir('./metadata/'):
 				os.makedirs('./metadata/')
-			open(self.jsonPath, 'w+')
-		self.jsonFile = ''
-		self.extDict  = {}
+			with open(self.jsonPath, 'w+') as self.jsonFile:
+				json.dump({}, self.jsonFile)
 
 	def listen(self):
 	 	self.serverSocket.listen(5)
@@ -54,16 +56,28 @@ class ThreadedServer(object):
 
 	def listenToClient(self, connectionSocket, addr):
 		try:
-			#self.jsonFile = open(self.jsonPath, 'r+')
-			# self.extDict = json.load(self.jsonFile)
 			message = connectionSocket.recv(2048)
 			msg = message.decode()
+			httpsIndex = msg.find('443')
+			
+			#Return for https
+			if httpsIndex !=-1:
+				connectionSocket.close()
+				return
+
+
 			print "*********************************************************"
 			print msg
 			first = msg.find('GET')+4
 			httpIndex = msg.find('http')
 			last  = msg.find('HTTP', first+1)-1
 			url   = str(msg[first: last])
+
+			#Return for empty urls
+			if not url:
+				connectionSocket.close()
+				return
+
 			host  = ''
 			hostIndex1 = msg.find('Host', last+1)
 			hostIndex2 = -1
@@ -88,15 +102,27 @@ class ThreadedServer(object):
 				reqType   = msg[firstType+8: lastType]
 				#print reqType	
 				urlFile = re.sub('[^A-Za-z0-9_\\.]','-',url)
-				#if not os.path.isfile(self.cachePath+urlFile):
+				
+				#On demand stale data check
+				if url in self.extDict:
+					currentTime = time.time()
+					if currentTime - self.extDict[url][1] > self.extDict[url][2]:
+						#conditional get
+						headResp = requests.head(url)
+						if headResp.headers['Last-Modified']!=self.extDict[url][3]:
+							print 'CACHE DATA IS STALE - DELETING FROM CACHE'
+							del self.extDict[url]
+							os.remove(self.cachePath+urlFile)
+						else:
+							print 'CACHE DATA IS STILL VALID - LAST MODIFIED IS SAME IN HEAD'
+							self.extDict[url][1] = currentTime
+				
 				if url not in self.extDict:
 					print 'GETTING FROM NET'
 					f = open(self.cachePath+urlFile, 'w+')
 					try:
 						fileName = urllib2.urlopen(url)
-						self.extDict[url] = fileName.info().getheader('Content-Type')
-						#print "**********************************************************"
-						#print 'extDict', self.extDict
+						self.extDict[url] = [fileName.info().getheader('Content-Type'), time.time(), self.TTL, fileName.info().getheader('Last-Modified')]
 						chunk = fileName.read(self.size)
 						while chunk:
 							f.write(chunk)
@@ -110,28 +136,24 @@ class ThreadedServer(object):
 				f = open(self.cachePath+urlFile, 'rb')
 				html = f.read(self.size)
 				print "*********************************************************"
+				print "\n\n\n"
 				#print 'url', url
 				connectionSocket.send("HTTP/1.1 200 OK\r\n"+
-				"Content-Type: "+self.extDict[url]+"\r\n"+
+				"Content-Type: "+self.extDict[url][0]+"\r\n"+
 				"\r\n")
 		
 				while html:
 					#print html
 					connectionSocket.send(html)
 					html = f.read(self.size)
-				# with open(self.jsonPath, 'r+') as self.jsonFile:
-				# 	json.dump(self.extDict, self.jsonFile, indent=8)
-				#self.jsonFile.close()
 				f.close()
-				#connectionSocket.shutdown(socket.SHUT_RDWR)
 				connectionSocket.close()
 		except KeyboardInterrupt:
 			with open(self.jsonPath, 'r+') as self.jsonFile:
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
 		finally:
-			print "\n\n\n"
-			with open(self.jsonPath, 'r+') as self.jsonFile:
+			with open(self.jsonPath, 'w') as self.jsonFile:
 					json.dump(self.extDict, self.jsonFile, indent=8)
 			connectionSocket.close()
 
