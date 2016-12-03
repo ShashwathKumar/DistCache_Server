@@ -146,7 +146,7 @@ class l3_switch (EventMixin):
         core.openflow.sendToDPID(dpid, po)
 
   def _handle_openflow_PacketIn (self, event):
-    global cache, cacheCnt, dstCacheDict, nwHosts, cache1checker, cache2checker, cache1Down, cache2Down
+    global cache, cacheCnt, dstCacheDict, nwHosts, cache1checker, cache2checker, cache1Down, cache2Down, cache1checkerCount, cache2checkerCount
     dpid = event.connection.dpid
     inport = event.port
     packet = event.parsed
