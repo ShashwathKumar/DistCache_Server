@@ -20,10 +20,10 @@ from pox.lib.revent import *
 import time
 
 # Timeout for flows
-FLOW_IDLE_TIMEOUT = 10000
+FLOW_IDLE_TIMEOUT = 100
 
 # Timeout for ARP entries
-ARP_TIMEOUT = 60
+ARP_TIMEOUT = 100
 
 # Maximum number of packet to buffer on a switch for an unknown IP
 MAX_BUFFERED_PER_IP = 5
@@ -220,7 +220,7 @@ class l3_switch (EventMixin):
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = packet.next.dstip
           msg.match.dl_type = ethernet.IP_TYPE
-          event.connection.send(msg)
+          #event.connection.send(msg)
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
           dstCacheDict[packet.next.dstip] = IPAddr('192.168.1.4')
           dstaddr = IPAddr('192.168.1.4')
@@ -228,14 +228,14 @@ class l3_switch (EventMixin):
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = packet.next.dstip
           msg.match.dl_type = ethernet.IP_TYPE
-          event.connection.send(msg)
+          #event.connection.send(msg)
         if cache1Down and cache2Down:
           log.info("**********************cache 1 & 2 are down => reroute to router **********************")
           dstaddr = IPAddr('192.168.1.2')
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = packet.next.dstip
           msg.match.dl_type = ethernet.IP_TYPE
-          event.connection.send(msg)
+          #event.connection.send(msg)
         log.info("changing actual destination IP : %s to cache ip : %s", packet.next.dstip, dstaddr)
 
       # if dstaddr in dstCacheDict:
@@ -372,7 +372,7 @@ class l3_switch (EventMixin):
           msg.match.nw_dst = a.protodst
           msg.match.nw_src = a.protosrc
           msg.match.dl_type = ethernet.IP_TYPE
-          event.connection.send(msg)
+          #event.connection.send(msg)
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
           dstCacheDict[a.protodst] = IPAddr('192.168.1.4')
           dstaddr = IPAddr('192.168.1.4')
@@ -380,7 +380,7 @@ class l3_switch (EventMixin):
           msg.match.nw_dst = a.protodst
           msg.match.nw_src = a.protosrc
           msg.match.dl_type = ethernet.IP_TYPE
-          event.connection.send(msg)
+          #event.connection.send(msg)
           log.debug("********************** cache 2 is down **********************")
         if cache1Down and cache2Down:
           log.debug("********************** cache 1 & 2 are down => reroute to router **********************")
@@ -389,7 +389,7 @@ class l3_switch (EventMixin):
           msg.match.nw_dst = a.protodst
           msg.match.nw_src = a.protosrc
           msg.match.dl_type = ethernet.IP_TYPE
-          event.connection.send(msg)
+          #event.connection.send(msg)
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
       if dstaddr != a.protodst:
