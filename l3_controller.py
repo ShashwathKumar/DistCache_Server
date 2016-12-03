@@ -211,7 +211,7 @@ class l3_switch (EventMixin):
 
       if packet.next.dstip not in nwHosts:
         if dstaddr == IPAddr('192.168.1.4') and cache1Down:
-          dstCacheDict[dstaddr] = IPAddr('192.168.1.5')
+          dstCacheDict[packet.next.dstip] = IPAddr('192.168.1.5')
           dstaddr = IPAddr('192.168.1.5')
           log.info("**********************cache 1 is down**********************")
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
@@ -219,7 +219,7 @@ class l3_switch (EventMixin):
           msg.match.dl_type = ethernet.IP_TYPE
           event.connection.send(msg)
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
-          dstCacheDict[dstaddr] = IPAddr('192.168.1.4')
+          dstCacheDict[packet.next.dstip] = IPAddr('192.168.1.4')
           dstaddr = IPAddr('192.168.1.4')
           log.info("**********************cache 2 is down**********************")
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
@@ -362,11 +362,11 @@ class l3_switch (EventMixin):
       #check cache status
       if a.protodst not in nwHosts:
         if dstaddr == IPAddr('192.168.1.4') and cache1Down:
-          dstCacheDict[dstaddr] = IPAddr('192.168.1.5')
+          dstCacheDict[a.protodst] = IPAddr('192.168.1.5')
           dstaddr = IPAddr('192.168.1.5')
           log.debug("********************** cache 1 is down **********************")
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
-          dstCacheDict[dstaddr] = IPAddr('192.168.1.4')
+          dstCacheDict[a.protodst] = IPAddr('192.168.1.4')
           dstaddr = IPAddr('192.168.1.4')
           log.debug("********************** cache 2 is down **********************")
         if cache1Down and cache2Down:
