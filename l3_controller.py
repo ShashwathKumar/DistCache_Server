@@ -23,7 +23,7 @@ import time
 FLOW_IDLE_TIMEOUT = 10000
 
 # Timeout for ARP entries
-ARP_TIMEOUT = 60 * 60
+ARP_TIMEOUT = 60
 
 # Maximum number of packet to buffer on a switch for an unknown IP
 MAX_BUFFERED_PER_IP = 5
@@ -211,18 +211,16 @@ class l3_switch (EventMixin):
 
       if packet.next.dstip not in nwHosts:
         if dstaddr == IPAddr('192.168.1.4') and cache1Down:
-          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          dstaddr = IPAddr(dstCacheDict[dstaddr])
-          cacheCnt=1-cacheCnt
+          dstCacheDict[dstaddr] = IPAddr('192.168.1.5')
+          dstaddr = IPAddr('192.168.1.5')
           log.info("**********************cache 1 is down**********************")
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = packet.next.dstip
           msg.match.dl_type = ethernet.IP_TYPE
           event.connection.send(msg)
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
-          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          dstaddr = IPAddr(dstCacheDict[dstaddr])
-          cacheCnt=1-cacheCnt
+          dstCacheDict[dstaddr] = IPAddr('192.168.1.4')
+          dstaddr = IPAddr('192.168.1.4')
           log.info("**********************cache 2 is down**********************")
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = packet.next.dstip
@@ -364,14 +362,12 @@ class l3_switch (EventMixin):
       #check cache status
       if a.protodst not in nwHosts:
         if dstaddr == IPAddr('192.168.1.4') and cache1Down:
-          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          dstaddr = IPAddr(dstCacheDict[dstaddr])
-          cacheCnt=1-cacheCnt
+          dstCacheDict[dstaddr] = IPAddr('192.168.1.5')
+          dstaddr = IPAddr('192.168.1.5')
           log.debug("********************** cache 1 is down **********************")
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
-          dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          dstaddr = IPAddr(dstCacheDict[dstaddr])
-          cacheCnt=1-cacheCnt
+          dstCacheDict[dstaddr] = IPAddr('192.168.1.4')
+          dstaddr = IPAddr('192.168.1.4')
           log.debug("********************** cache 2 is down **********************")
         if cache1Down and cache2Down:
           log.debug("********************** cache 1 & 2 are down => reroute to router **********************")
