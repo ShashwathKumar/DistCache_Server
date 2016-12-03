@@ -114,7 +114,7 @@ class ThreadedServer(object):
 							del self.extDict[url]
 							os.remove(self.cachePath+urlFile)
 						else:
-							print 'CACHE DATA IS STILL VALID - LAST MODIFIED IS SAME IN HEAD'
+							print 'CACHE DATA IS STILL VALID - LAST MODIFIED IS SAME IN CONDITIONAL GET'
 							self.extDict[url][1] = currentTime
 				
 				if url not in self.extDict:
