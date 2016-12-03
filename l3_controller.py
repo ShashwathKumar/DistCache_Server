@@ -227,12 +227,14 @@ class l3_switch (EventMixin):
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = packet.next.dstip
           msg.match.dl_type = ethernet.IP_TYPE
+          event.connection.send(msg)
         if cache1Down and cache2Down:
           log.info("**********************cache 1 & 2 are down => reroute to router **********************")
           dstaddr = IPAddr('192.168.1.2')
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = packet.next.dstip
           msg.match.dl_type = ethernet.IP_TYPE
+          event.connection.send(msg)
         log.info("changing actual destination IP : %s to cache ip : %s", packet.next.dstip, dstaddr)
 
       # if dstaddr in dstCacheDict:
