@@ -31,6 +31,9 @@ MAX_BUFFERED_PER_IP = 5
 # Maximum time to hang on to a buffer for an unknown IP in seconds
 MAX_BUFFER_TIME = 5
 
+# Cache UP timer
+CACHE_UP_TIMER = 180
+
 #HackAlert
 cache = ['192.168.1.4', '192.168.1.5']
 cache1Down = False
@@ -388,6 +391,16 @@ class l3_switch (EventMixin):
 
       if dstaddr != a.protodst:
         spoofingmac = True
+
+      if str(a.protosrc) in cache and str(a.protosrc) == '192.168.1.4':
+        cache1checker = False
+        cache1Down = False
+        cache1checkerCount = 10
+                  
+      if str(a.protosrc) in cache and str(a.protosrc) == '192.168.1.5':
+        cache2checker = False
+        cache2Down = False
+        cache2checkerCount = 10
 
       if a.prototype == arp.PROTO_TYPE_IP:
         if a.hwtype == arp.HW_TYPE_ETHERNET:
