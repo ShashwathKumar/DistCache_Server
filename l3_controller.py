@@ -1,4 +1,6 @@
 #reference from apache l3_learning
+#Authors - Aaasheesh, Arjun, Sashwath and Jay
+#Improvements on top of the existing L3 Apache learning switch
 
 from pox.core import core
 import pox
@@ -33,8 +35,10 @@ MAX_BUFFER_TIME = 5
 cache = ['192.168.1.4', '192.168.1.5']
 cache1Down = False
 cache1checker = False
+cache1checkerCount = 10;
 cache2Down = False
 cache2checker = False
+cache2checkerCount = 10;
 cacheCnt = 0
 dstCacheDict = {}
 nwHosts = set()
@@ -207,14 +211,14 @@ class l3_switch (EventMixin):
 
       if packet.next.dstip not in nwHosts:
         if dstaddr == IPAddr('192.168.1.4') and cache1Down:
-          cacheCnt=1-cacheCnt
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
           dstaddr = IPAddr(dstCacheDict[dstaddr])
+          cacheCnt=1-cacheCnt
           log.info("**********************cache 1 is down**********************")
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
-          cacheCnt=1-cacheCnt
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
           dstaddr = IPAddr(dstCacheDict[dstaddr])
+          cacheCnt=1-cacheCnt
           log.info("**********************cache 2 is down**********************")
         if cache1Down and cache2Down:
           log.info("**********************cache 1 & 2 are down => reroute to router **********************")
@@ -345,21 +349,21 @@ class l3_switch (EventMixin):
           log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], a.protodst)
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
-
+      #check cache status
       if a.protodst not in nwHosts:
         if dstaddr == IPAddr('192.168.1.4') and cache1Down:
-          cacheCnt=1-cacheCnt
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
           dstaddr = IPAddr(dstCacheDict[dstaddr])
-          log.info("********************** cache 1 is down **********************")
+          cacheCnt=1-cacheCnt
+          log.debug("********************** cache 1 is down **********************")
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
-          cacheCnt=1-cacheCnt
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
           dstaddr = IPAddr(dstCacheDict[dstaddr])
-          log.info("********************** cache 2 is down **********************")
+          cacheCnt=1-cacheCnt
+          log.debug("********************** cache 2 is down **********************")
         if cache1Down and cache2Down:
-          log.info("********************** cache 1 & 2 are down => reroute to router **********************")
-          dstaddr = IPAddr('192.168.1.2')
+          log.debug("********************** cache 1 & 2 are down => reroute to router **********************")
+          dstaddr = IPAddr('192.168.1.2') # redirect to router
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
       if dstaddr != a.protodst:
@@ -400,10 +404,12 @@ class l3_switch (EventMixin):
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4':
                     cache1checker = False
                     cache1Down = False
+                    cache1checkerCount = 0
                   
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
                     cache2checker = False
                     cache2Down = False
+                    cache2checkerCount = 0
 
                   r = arp()
                   r.hwtype = a.hwtype
@@ -439,17 +445,22 @@ class l3_switch (EventMixin):
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4': #entry is expired  -set checker is true
                     if cache1checker:
                       cache1Down = True
-                      log.info("************** Cache1 is down **************")
+                      log.debug("################# Cache1 is down #################")
                     else:
-                      cache1checker = True
+                      if cache1checkerCount == 0:
+                        cache1checker = True
+                      else:
+                        cache1checkerCount=cache1checkerCount-1;
                   
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
                     if cache2checker:
                       cache2Down = True
-                      log.info("************** Cache2 is down **************")
+                      log.debug("################# Cache2 is down #################")
                     else:
-                      cache2checker = True
-
+                      if cache2checkerCount == 0:
+                        cache2checker = True
+                      else:
+                        cache2checkerCount=cache2checkerCount-1;
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
       #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
 
