@@ -521,7 +521,7 @@ class l3_switch (EventMixin):
         msg.in_port = inport
         event.connection.send(msg)
 
-        if cache1Down && dstaddr != IPAddr('192.168.1.4')
+        if cache1Down and dstaddr != IPAddr('192.168.1.4'):
           r = arp()
           r.hwtype = a.hwtype
           r.prototype = a.prototype
@@ -542,7 +542,7 @@ class l3_switch (EventMixin):
           msg.in_port = inport
           event.connection.send(msg)
 
-        if cache2Down && && dstaddr != IPAddr('192.168.1.5')
+        if cache2Down and dstaddr != IPAddr('192.168.1.5'):
           r = arp()
           r.hwtype = a.hwtype
           r.prototype = a.prototype
