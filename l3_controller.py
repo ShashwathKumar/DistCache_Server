@@ -1,4 +1,6 @@
 #reference from apache l3_learning
+#Authors - Aaasheesh, Arjun, Sashwath and Jay
+#Improvements on top of the existing L3 Apache learning switch
 
 from pox.core import core
 import pox
@@ -18,10 +20,10 @@ from pox.lib.revent import *
 import time
 
 # Timeout for flows
-FLOW_IDLE_TIMEOUT = 10000
+FLOW_IDLE_TIMEOUT = 100
 
 # Timeout for ARP entries
-ARP_TIMEOUT = 60 * 60
+ARP_TIMEOUT = 100
 
 # Maximum number of packet to buffer on a switch for an unknown IP
 MAX_BUFFERED_PER_IP = 5
@@ -29,12 +31,17 @@ MAX_BUFFERED_PER_IP = 5
 # Maximum time to hang on to a buffer for an unknown IP in seconds
 MAX_BUFFER_TIME = 5
 
+# Cache UP timer
+CACHE_UP_TIMER = 180
+
 #HackAlert
 cache = ['192.168.1.4', '192.168.1.5']
 cache1Down = False
 cache1checker = False
+cache1checkerCount = 10;
 cache2Down = False
 cache2checker = False
+cache2checkerCount = 10;
 cacheCnt = 0
 dstCacheDict = {}
 nwHosts = set()
@@ -142,7 +149,7 @@ class l3_switch (EventMixin):
         core.openflow.sendToDPID(dpid, po)
 
   def _handle_openflow_PacketIn (self, event):
-    global cache, cacheCnt, dstCacheDict, nwHosts, cache1checker, cache2checker, cache1Down, cache2Down
+    global cache, cacheCnt, dstCacheDict, nwHosts, cache1checker, cache2checker, cache1Down, cache2Down, cache1checkerCount, cache2checkerCount
     dpid = event.connection.dpid
     inport = event.port
     packet = event.parsed
@@ -201,10 +208,35 @@ class l3_switch (EventMixin):
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
           dstCacheDict[dstaddr] = IPAddr(cache[cacheCnt])
-          log.info("assigning cache for a new dstaddr: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], packet.next.dstip)
+          log.info("assigning new cache for a new dstaddr: cache assigned :%s for dest addr:%s", dstCacheDict[dstaddr], packet.next.dstip)
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
-        log.info("changing destination IP to cache ip: cache:%s, dstaddr:%s", dstaddr , packet.next.dstip )
+
+      if packet.next.dstip not in nwHosts:
+        if dstaddr == IPAddr('192.168.1.4') and cache1Down:
+          dstCacheDict[packet.next.dstip] = IPAddr('192.168.1.5')
+          dstaddr = IPAddr('192.168.1.5')
+          log.info("**********************cache 1 is down**********************")
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = packet.next.dstip
+          msg.match.dl_type = ethernet.IP_TYPE
+          #event.connection.send(msg)
+        if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
+          dstCacheDict[packet.next.dstip] = IPAddr('192.168.1.4')
+          dstaddr = IPAddr('192.168.1.4')
+          log.info("**********************cache 2 is down**********************")
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = packet.next.dstip
+          msg.match.dl_type = ethernet.IP_TYPE
+          #event.connection.send(msg)
+        if cache1Down and cache2Down:
+          log.info("**********************cache 1 & 2 are down => reroute to router **********************")
+          dstaddr = IPAddr('192.168.1.2')
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = packet.next.dstip
+          msg.match.dl_type = ethernet.IP_TYPE
+          #event.connection.send(msg)
+        log.info("changing actual destination IP : %s to cache ip : %s", packet.next.dstip, dstaddr)
 
       # if dstaddr in dstCacheDict:
       #   dstaddr = dstCacheDict[dstaddr]
@@ -223,8 +255,8 @@ class l3_switch (EventMixin):
           log.warning("%i %i not sending packet for %s back out of the "
                       "input port" % (dpid, inport, dstaddr))
         else:
-          log.info("%i %i installing flow for %s => %s out port %i"
-                    % (dpid, inport, packet.next.srcip, packet.next.dstip, prt))
+          log.info("For packet in on switch %i via port %i installing flow for source %s => destination %s to go on out port %i in the switch %i"
+                    % (dpid, inport, packet.next.srcip, packet.next.dstip, prt, dpid))
 
           actions = []
           actions.append(of.ofp_action_dl_addr.set_dst(mac))
@@ -322,6 +354,7 @@ class l3_switch (EventMixin):
 
       dstaddr = a.protodst# dest IP
       spoofingmac = False
+
       #HackAlert
       if dstaddr not in nwHosts:
         if dstaddr not in dstCacheDict:
@@ -329,6 +362,34 @@ class l3_switch (EventMixin):
           log.info("assigning cache for a new dstaddr in ARP: cache:%s, dstaddr:%s", dstCacheDict[dstaddr], a.protodst)
           cacheCnt=1-cacheCnt
         dstaddr = IPAddr(dstCacheDict[dstaddr])
+      #check cache status
+      if a.protodst not in nwHosts:
+        if dstaddr == IPAddr('192.168.1.4') and cache1Down:
+          dstCacheDict[a.protodst] = IPAddr('192.168.1.5')
+          dstaddr = IPAddr('192.168.1.5')
+          log.debug("********************** cache 1 is down **********************")
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = a.protodst
+          msg.match.nw_src = a.protosrc
+          msg.match.dl_type = ethernet.IP_TYPE
+          #event.connection.send(msg)
+        if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
+          dstCacheDict[a.protodst] = IPAddr('192.168.1.4')
+          dstaddr = IPAddr('192.168.1.4')
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = a.protodst
+          msg.match.nw_src = a.protosrc
+          msg.match.dl_type = ethernet.IP_TYPE
+          #event.connection.send(msg)
+          log.debug("********************** cache 2 is down **********************")
+        if cache1Down and cache2Down:
+          log.debug("********************** cache 1 & 2 are down => reroute to router **********************")
+          dstaddr = IPAddr('192.168.1.2') # redirect to router
+          msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+          msg.match.nw_dst = a.protodst
+          msg.match.nw_src = a.protosrc
+          msg.match.dl_type = ethernet.IP_TYPE
+          #event.connection.send(msg)
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
 
       if dstaddr != a.protodst:
@@ -337,6 +398,16 @@ class l3_switch (EventMixin):
       if a.prototype == arp.PROTO_TYPE_IP:
         if a.hwtype == arp.HW_TYPE_ETHERNET:
           if a.protosrc != 0:
+
+            if str(a.protosrc) == '192.168.1.4':
+              cache1checker = False
+              cache1Down = False
+              cache1checkerCount = 10
+                        
+            if str(a.protosrc) == '192.168.1.5':
+              cache2checker = False
+              cache2Down = False
+              cache2checkerCount = 10
 
             # Learn or update port/MAC info
             if a.protosrc in self.arpTable[dpid]:
@@ -369,10 +440,12 @@ class l3_switch (EventMixin):
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4':
                     cache1checker = False
                     cache1Down = False
+                    cache1checkerCount = 10
                   
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
                     cache2checker = False
                     cache2Down = False
+                    cache2checkerCount = 10
 
                   r = arp()
                   r.hwtype = a.hwtype
@@ -408,24 +481,24 @@ class l3_switch (EventMixin):
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.4': #entry is expired  -set checker is true
                     if cache1checker:
                       cache1Down = True
-                      log.info("**************Cache1 is down**************")
+                      log.debug("################# Cache1 is down #################")
                     else:
-                      cache1checker = True
+                      if cache1checkerCount == 0:
+                        cache1checker = True
+                      else:
+                        cache1checkerCount=cache1checkerCount-1
                   
                   if str(dstaddr) in cache and str(dstaddr) == '192.168.1.5':
                     if cache2checker:
                       cache2Down = True
-                      log.info("**************Cache2 is down**************")
+                      log.debug("################# Cache2 is down #################")
                     else:
-                      cache2checker = True
-
-
-
+                      if cache2checkerCount == 0:
+                        cache2checker = True
+                      else:
+                        cache2checkerCount=cache2checkerCount-1
       # Didn't know how to answer or otherwise handle this ARP, so just flood it
       #log.debug("%i %i flooding ARP %s %s => %s" % (dpid, inport, {arp.REQUEST:"request",arp.REPLY:"reply"}.get(a.opcode, 'op:%i' % (a.opcode,)), a.protosrc, a.protodst))
-
-
-
 
       if a.opcode == arp.REQUEST:
         r = arp()
@@ -447,6 +520,49 @@ class l3_switch (EventMixin):
         msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
         msg.in_port = inport
         event.connection.send(msg)
+
+        if cache1Down and dstaddr != IPAddr('192.168.1.4'):
+          r = arp()
+          r.hwtype = a.hwtype
+          r.prototype = a.prototype
+          r.hwlen = a.hwlen
+          r.protolen = a.protolen
+          r.opcode = a.opcode
+          r.hwdst = ETHER_BROADCAST
+          r.protodst = IPAddr('192.168.1.4')
+          r.hwsrc = a.hwsrc
+          r.protosrc = a.protosrc
+          e = ethernet(type=packet.type, src=packet.src,
+                       dst=ETHER_BROADCAST)
+          e.set_payload(r)
+          log.debug("Checking if cache up Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+          msg = of.ofp_packet_out()
+          msg.data = e.pack()
+          msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+          msg.in_port = inport
+          event.connection.send(msg)
+
+        if cache2Down and dstaddr != IPAddr('192.168.1.5'):
+          r = arp()
+          r.hwtype = a.hwtype
+          r.prototype = a.prototype
+          r.hwlen = a.hwlen
+          r.protolen = a.protolen
+          r.opcode = a.opcode
+          r.hwdst = ETHER_BROADCAST
+          r.protodst = IPAddr('192.168.1.5')
+          r.hwsrc = a.hwsrc
+          r.protosrc = a.protosrc
+          e = ethernet(type=packet.type, src=packet.src,
+                       dst=ETHER_BROADCAST)
+          e.set_payload(r)
+          log.debug("Checking if cache up Switch %i %i Flooding ARP for %s on behalf of %s" % (dpid, inport, r.protodst, r.protosrc))
+          msg = of.ofp_packet_out()
+          msg.data = e.pack()
+          msg.actions.append(of.ofp_action_output(port = of.OFPP_FLOOD))
+          msg.in_port = inport
+          event.connection.send(msg)
+
       else:
         msg = of.ofp_packet_out(in_port = inport, data = event.ofp,
             action = of.ofp_action_output(port = of.OFPP_FLOOD))
