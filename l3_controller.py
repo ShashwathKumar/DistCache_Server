@@ -20,10 +20,10 @@ from pox.lib.revent import *
 import time
 
 # Timeout for flows
-FLOW_IDLE_TIMEOUT = 100
+FLOW_IDLE_TIMEOUT = 10
 
 # Timeout for ARP entries
-ARP_TIMEOUT = 100
+ARP_TIMEOUT = 60
 
 # Maximum number of packet to buffer on a switch for an unknown IP
 MAX_BUFFERED_PER_IP = 5
