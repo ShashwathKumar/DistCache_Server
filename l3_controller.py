@@ -395,19 +395,19 @@ class l3_switch (EventMixin):
       if dstaddr != a.protodst:
         spoofingmac = True
 
-      if str(a.protosrc) in cache and str(a.protosrc) == '192.168.1.4':
-        cache1checker = False
-        cache1Down = False
-        cache1checkerCount = 10
-                  
-      if str(a.protosrc) in cache and str(a.protosrc) == '192.168.1.5':
-        cache2checker = False
-        cache2Down = False
-        cache2checkerCount = 10
-
       if a.prototype == arp.PROTO_TYPE_IP:
         if a.hwtype == arp.HW_TYPE_ETHERNET:
           if a.protosrc != 0:
+
+            if str(a.protosrc) == '192.168.1.4':
+              cache1checker = False
+              cache1Down = False
+              cache1checkerCount = 10
+                        
+            if str(a.protosrc) == '192.168.1.5':
+              cache2checker = False
+              cache2Down = False
+              cache2checkerCount = 10
 
             # Learn or update port/MAC info
             if a.protosrc in self.arpTable[dpid]:
