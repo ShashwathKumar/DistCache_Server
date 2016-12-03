@@ -370,6 +370,7 @@ class l3_switch (EventMixin):
           log.debug("********************** cache 1 is down **********************")
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = a.protodst
+          msg.match.nw_src = a.protosrc
           msg.match.dl_type = ethernet.IP_TYPE
           event.connection.send(msg)
         if dstaddr == IPAddr('192.168.1.5') and cache2Down:  
@@ -377,6 +378,7 @@ class l3_switch (EventMixin):
           dstaddr = IPAddr('192.168.1.4')
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = a.protodst
+          msg.match.nw_src = a.protosrc
           msg.match.dl_type = ethernet.IP_TYPE
           event.connection.send(msg)
           log.debug("********************** cache 2 is down **********************")
@@ -385,6 +387,7 @@ class l3_switch (EventMixin):
           dstaddr = IPAddr('192.168.1.2') # redirect to router
           msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
           msg.match.nw_dst = a.protodst
+          msg.match.nw_src = a.protosrc
           msg.match.dl_type = ethernet.IP_TYPE
           event.connection.send(msg)
         log.info("changing destination IP to cache ip in ARP: cache:%s, dstaddr:%s", dstaddr, a.protodst)
