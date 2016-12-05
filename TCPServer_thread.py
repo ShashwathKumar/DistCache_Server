@@ -109,7 +109,7 @@ class ThreadedServer(object):
 					if currentTime - self.extDict[url][1] > self.extDict[url][2]:
 						#conditional get
 						headResp = requests.head(url)
-						if 'Last-Modified' in headerResp.headers and headResp.headers['Last-Modified']!=self.extDict[url][3]:
+						if 'Last-Modified' in headResp.headers and headResp.headers['Last-Modified']!=self.extDict[url][3]:
 							print 'CACHE DATA IS STALE - DELETING FROM CACHE'
 							del self.extDict[url]
 							os.remove(self.cachePath+urlFile)
